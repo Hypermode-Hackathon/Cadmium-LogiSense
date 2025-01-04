@@ -1,11 +1,12 @@
 import electronLogo from './assets/electron.svg'
+import { ModeToggle } from './components/theme/toggle-theme'
 import { Button } from './components/ui/button'
 
 function App(): JSX.Element {
   const ipcHandle = (): void => window.electron.ipcRenderer.send('ping')
 
   return (
-    <div className="bg-primary text-white">
+    <div className="">
       <img alt="logo" className="logo" src={electronLogo} />
       <div className="creator">Powered by electron-vite</div>
       <div className="text">
@@ -32,7 +33,8 @@ function App(): JSX.Element {
           </a>
         </div>
       </div>
-      <Button variant={'destructive'}>Click me</Button>
+      <ModeToggle />
+      <Button variant={'destructive'}>Click meee</Button>
     </div>
   )
 }
