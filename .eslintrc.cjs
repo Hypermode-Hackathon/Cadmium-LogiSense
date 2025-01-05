@@ -18,6 +18,7 @@ module.exports = {
     'no-unused-vars': 'off',
     '@typescript-eslint/no-unused-vars': 'error',
     '@typescript-eslint/explicit-function-return-type': 'off',
-    '@typescript-eslint/no-shadow': 'off'
+    '@typescript-eslint/no-shadow': 'off',
+    '@typescript-eslint/no-explicit-any': 'off'
   }
 }

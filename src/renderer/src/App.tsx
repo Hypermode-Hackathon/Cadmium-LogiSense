@@ -1,127 +1,184 @@
-// import electronLogo from './assets/electron.svg'
-import { ModeToggle } from './components/theme/toggle-theme'
-import { Button } from './components/ui/button'
+import { Suspense, lazy, useEffect } from 'react'
+import { createBrowserRouter, RouterProvider } from 'react-router-dom'
+import LoginNavbar from './components/custom/navbars/login-navbar'
+import { SidebarInset, SidebarProvider } from './components/ui/sidebar'
+import { AppSidebar } from './components/custom/sidebar'
+import PublicRouteProtector from './services/route-protector/public-route-protector'
+import PrivateRouteProtector from './services/route-protector/private-route-protector'
+import ProjectPageNavbar from './components/custom/navbars/projects-page-navbar'
+import Footer from './components/custom/global/footer'
+import { addMessageListener, disconnectWebSocket, removeMessageListener } from './socket/socket'
+import { LogTableEntry } from './types/type'
+import { useLogStore } from './stores/useLogStore'
 
-import React, { useEffect, useRef } from 'react'
-import { Terminal } from '@xterm/xterm'
-import '@xterm/xterm/css/xterm.css'
+// Lazy load pages
+const LogAnalysis = lazy(() => import('./pages/dashboard/log-analysis/index'))
+const NotFound = lazy(() => import('./pages/not-found/not-found'))
+const Login = lazy(() => import('./pages/login/index'))
+const Projects = lazy(() => import('./pages/projects/index'))
 
-// Establish WebSocket connection
-// Establish WebSocket connection
+const router = createBrowserRouter([
+  {
+    path: '/',
+    element: (
+      <>
+        <Suspense fallback={<div className="text-center">Loading...</div>}>
+          <PublicRouteProtector>
+            <>
+              <LoginNavbar />
+              <Login />
+            </>
+          </PublicRouteProtector>
+        </Suspense>
+      </>
+    )
+  },
+  {
+    path: '/login',
+    element: (
+      <>
+        <Suspense fallback={<div className="text-center">Loading...</div>}>
+          <PublicRouteProtector>
+            <>
+              <LoginNavbar />
+              <Login />
+            </>
+          </PublicRouteProtector>
+        </Suspense>
+      </>
+    )
+  },
+  {
+    path: '/:organization/projects',
+    element: (
+      <Suspense fallback={<div className="text-center">Loading...</div>}>
+        <PrivateRouteProtector>
+          <ProjectPageNavbar />
+          <Projects />
+        </PrivateRouteProtector>
+      </Suspense>
+    )
+  },
+  {
+    path: '/:organization/projects/:project_id/log-analysis/:submodule',
+    element: (
+      <Suspense fallback={<div className="text-center">Loading...</div>}>
+        <PrivateRouteProtector>
+          <SidebarProvider>
+            <AppSidebar variant="inset" />
+            <SidebarInset>
+              <LogAnalysis />
+            </SidebarInset>
+          </SidebarProvider>
+          <div className="fixed bottom-0 right-0 bg-sidebar-background w-full ">
+            <Footer />
+          </div>
+        </PrivateRouteProtector>
+      </Suspense>
+    )
+  },
+  {
+    path: '*',
+    element: (
+      <>
+        {/* <Header /> */}
+        <Suspense fallback={<div className="text-center">Loading...</div>}>
+          <NotFound />
+        </Suspense>
+        {/* <Footer /> */}
+      </>
+    )
+  }
+])
 
-const XTerminal: React.FC = () => {
-  const terminalRef = useRef<HTMLDivElement>(null)
-  const socketRef = useRef<WebSocket | null>(null)
-  const commandBuffer = useRef<string>('') // Buffer to store the user's input
+function App(): JSX.Element {
+  // ! TEST CONNECTION TO MAIN PROCESS
+  // const ipcHandle = (): void => window.electron.ipcRenderer.send('ping')
 
+  const { appendTableDataToTop, setLogDataToStream } = useLogStore()
+  /*
+	WebSocket message handling for new logs
+
+	This logic is part of the Log Analysis page under the Explorer tab.
+	The WebSocket connection and its message handling must be initialized at the root level of the app (in App.tsx).
+	This ensures the WebSocket listener is active as soon as the app starts, regardless of whether the Log Analysis -> Explorer tab has been rendered.
+
+	If the WebSocket logic were placed in log-analysis.tsx, it would only listen for messages when the Log Analysis page is rendered,
+	which is not desirable for real-time log updates.
+
+	By placing the WebSocket handling here, the app can start listening for WebSocket messages immediately after initialization.
+	*/
   useEffect(() => {
-    const term = new Terminal({
-      // cols: 80,
-      // rows: 24,
-      cursorBlink: true, // Makes the terminal cursor blink
-      theme: {
-        background: '#000000', // Background color
-        foreground: 'gray', // Text color
-        cursor: '#FFFFFF' // Cursor color
-      }
-    })
-    const socket = new WebSocket('ws://localhost:6969/ws')
-    socketRef.current = socket
-    // Open the terminal in the referenced div
-    term.open(terminalRef.current as HTMLDivElement)
-
-    // Handle WebSocket events
-    socket.onopen = () => {
-      // term.write('Connection established. Start typing commands...\r\n')
-      console.log('WebSocket connection opened')
-    }
-
-    socket.onmessage = (event) => {
-      // Write data received from the server to the terminal
-      term.write(event.data)
-    }
-
-    socket.onerror = (error) => {
-      term.write('\r\nError connecting to backend server.\r\n')
-      console.error('WebSocket error:', error)
-    }
-
-    socket.onclose = () => {
-      term.write('\r\nConnection closed by the server.\r\n')
-      console.log('WebSocket connection closed')
-    }
-
-    // Listen for user input and handle commands on Enter key
-    term.onData((input) => {
-      if (input === '\r') {
-        // User pressed Enter, send the command to the backend
-        const command = commandBuffer.current.trim()
-        if (command && socket.readyState === WebSocket.OPEN) {
-          socket.send(JSON.stringify({ type: 'command', command }))
-          term.write(`\r\n`) // Move to the next line
-        } else if (!command) {
-          term.write('\r\n') // Just move to the next line for empty input
+    // Define a listener to handle chunks
+    const handleChunk = (chunk: any) => {
+      if (chunk.action === 'new_log') {
+        const logTableData: LogTableEntry = {
+          id: chunk.data.log_id,
+          applicationId: chunk.data.application_id,
+          organizationId: chunk.data.raw_log.organization_id.$oid,
+          error: chunk.data.raw_log.error,
+          url: chunk.data.raw_log.url,
+          method: chunk.data.raw_log.method,
+          createdAt: chunk.data.raw_log.created_at,
+          updatedAt: chunk.data.raw_log.updated_at,
+          ragInference: {
+            rag_response: {
+              formatted_rag_response: [],
+              rag_response: {
+                application_id: '',
+                created_at: '',
+                processed_at: '',
+                query: '',
+                rag_response: ''
+              },
+              application_id: '',
+              created_at: '',
+              query: ''
+            }
+          },
+          traceback: chunk.data.raw_log.traceback,
+          isStreaming: true
         }
-        commandBuffer.current = '' // Clear the buffer after sending
-      } else if (input === '\u007F') {
-        // Handle backspace
-        if (commandBuffer.current.length > 0) {
-          commandBuffer.current = commandBuffer.current.slice(0, -1)
-          term.write('\b \b') // Move the cursor back, clear the character, move back again
+        appendTableDataToTop([logTableData])
+        // Show notification in Electron
+        if (window.electronAPI) {
+          window.electronAPI.sendMessage('toMain', {
+            message: `New log received: ${chunk.data.raw_log.error}`
+          })
         }
+      } else if (chunk.action === 'stream_log_response') {
+        setLogDataToStream({
+          isStreaming: true,
+          application_id: chunk.data.application_id,
+          chunk: chunk.data.chunk,
+          log_id: chunk.data.log_id
+        })
+      } else if (chunk.action === 'stream_complete') {
+        // const log_id = chunk.data.log_id;
+        // setLogStreamingComplete(log_id);
+        setLogDataToStream({
+          isStreaming: false,
+          application_id: chunk.data.application_id,
+          chunk: chunk.data.chunk,
+          log_id: chunk.data.log_id
+        })
       } else {
-        // Add input to the command buffer and display it on the terminal
-        commandBuffer.current += input
-        term.write(input)
+        console.log('Received message from WebSocket:', chunk)
       }
-    })
+      // setStreamedMessage((prev) => prev + chunk); // Append each chunk to the current message
+    }
 
-    // Cleanup on unmount
+    // Add the listener
+    addMessageListener(handleChunk)
+
+    // Cleanup on component unmount
     return () => {
-      socket.close()
-      term.dispose()
+      removeMessageListener(handleChunk)
+      disconnectWebSocket()
     }
   }, [])
 
-  return <div ref={terminalRef} style={{ textAlign: 'left', width: '100%', height: '100%' }}></div>
-}
-
-function App(): JSX.Element {
-  const ipcHandle = (): void => window.electron.ipcRenderer.send('ping')
-
-  return (
-    <div className="">
-      <div className="creator">Powered by electron-vite</div>
-      <div className="text">
-        Build an Electron app with <span className="react">React</span>
-        &nbsp;and <span className="ts">TypeScript</span>
-      </div>
-      <p className="tip">
-        Please try pressing <code>F12</code> to open the devTool
-      </p>
-      <div className="actions bg-pink-500">
-        <div className="action">
-          <a
-            href="https://electron-vite.org/"
-            target="_blank"
-            rel="noreferrer"
-            className="bg-blue-500 text-3xl font-bold underline"
-          >
-            Documentation
-          </a>
-        </div>
-        <div className="action">
-          <a target="_blank" rel="noreferrer" onClick={ipcHandle}>
-            Send IPC
-          </a>
-        </div>
-      </div>
-      <ModeToggle />
-      <Button variant={'destructive'}>Click me</Button>
-      <XTerminal />
-      <Button variant={'destructive'}>Click me</Button>
-    </div>
-  )
+  return <RouterProvider router={router} />
 }
 
 export default App
