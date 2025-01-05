@@ -1,0 +1,12 @@
+// src/config/index.ts
+import env from './env'
+
+export default {
+  port: env.PORT || 6969,
+  cors: {
+    origin: env.CORS_ORIGIN || 'http://localhost:6968',
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    credentials: true
+  }
+  // Add other configurations as needed
+}

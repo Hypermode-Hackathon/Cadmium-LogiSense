@@ -1,20 +1,27 @@
-import { WebSocketServer } from 'ws'
+// src/server/server.ts
 import express from 'express'
 import cors from 'cors'
 import http from 'http'
 import os from 'os'
 import pty from 'node-pty'
+import corsOptions from './middlewares/cors-option'
+import router from './routes/router'
+import log from './middlewares/logging'
+import logger from './utils/logger'
+import config from './config'
+import { WebSocketServer } from 'ws'
 
 const app = express()
 const shell = os.platform() === 'win32' ? 'powershell.exe' : 'bash'
 
-// Enable CORS for all origins
-app.use(cors())
-
-// Basic HTTP route
-app.get('/', (req, res) => {
-  res.send('Hello World!', req.body)
-})
+// Middleware
+app.use(express.json())
+app.use(cors(corsOptions))
+// Routes
+// app.use(router);
+app.use('/api', router)
+// Global log Handler
+app.use(log)
 
 // Create an HTTP server
 const server = http.createServer(app)
@@ -50,13 +57,13 @@ wss.on('connection', (ws) => {
         ws.send(data.trim()) // Send only the prompt
       }
     } else {
+      ws.send(data)
     }
-    ws.send(data)
   })
 
   ws.on('message', (message) => {
     try {
-      const parsedData = JSON.parse(message)
+      const parsedData = JSON.parse(message.toString())
 
       if (parsedData.type === 'command' && parsedData.command) {
         const command = parsedData.command.trim().split(' ')[0] // Extract the base command
@@ -95,9 +102,8 @@ wss.on('connection', (ws) => {
   })
 })
 
-// Start the HTTP server
-export default function startServer() {
-  server.listen(6969, () => {
-    console.log('Express Server started on port 6969')
+export function startServer() {
+  server.listen(config.port, () => {
+    logger.info(`Express server is running on http://localhost:${config.port}`)
   })
 }
