@@ -1,4 +1,4 @@
-# electron-vite
+# electron-vite-tailwind-shadcn
 
 An Electron application with React and TypeScript
 
