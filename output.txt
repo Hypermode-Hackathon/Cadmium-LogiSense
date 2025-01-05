@@ -174,7 +174,21 @@ module.exports = {
     'plugin:react/jsx-runtime',
     '@electron-toolkit/eslint-config-ts/recommended',
     '@electron-toolkit/eslint-config-prettier'
-  ]
+  ],
+  rules: {
+    // A temporary hack related to IDE not resolving correct package.json
+    'import/no-extraneous-dependencies': 'off',
+    'react/react-in-jsx-scope': 'off',
+    'react/jsx-filename-extension': 'off',
+    'import/extensions': 'off',
+    'import/no-unresolved': 'off',
+    'import/no-import-module-exports': 'off',
+    'no-shadow': 'off',
+    'no-unused-vars': 'off',
+    '@typescript-eslint/no-unused-vars': 'error',
+    '@typescript-eslint/explicit-function-return-type': 'off',
+    '@typescript-eslint/no-shadow': 'off'
+  }
 }
 
 
@@ -252,13 +266,17 @@ $ npm run build:linux
     "src/renderer/src/env.d.ts",
     "src/renderer/src/**/*",
     "src/renderer/src/**/*.tsx",
-    "src/preload/*.d.ts"
-, "lib"  ],
+    "src/preload/*.d.ts",
+    "lib"
+  ],
   "compilerOptions": {
     "composite": true,
     "jsx": "react-jsx",
     "baseUrl": ".",
     "paths": {
+      "@/*": [
+        "./src/*"
+      ],
       "@renderer/*": [
         "src/renderer/src/*"
       ],
@@ -303,13 +321,22 @@ out
   "dependencies": {
     "@electron-toolkit/preload": "^3.0.1",
     "@electron-toolkit/utils": "^3.0.0",
+    "@radix-ui/react-dropdown-menu": "^2.1.4",
     "@radix-ui/react-slot": "^1.1.1",
+    "@xterm/xterm": "^5.5.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "cors": "^2.8.5",
     "electron-updater": "^6.1.7",
+    "express": "^4.21.2",
     "lucide-react": "^0.469.0",
+    "node-pty": "^1.0.0",
     "tailwind-merge": "^2.6.0",
-    "tailwindcss-animate": "^1.0.7"
+    "tailwindcss-animate": "^1.0.7",
+    "ws": "^8.18.0",
+    "xterm-addon-fit": "^0.8.0",
+    "xterm-addon-search": "^0.13.0",
+    "xterm-addon-web-links": "^0.9.0"
   },
   "devDependencies": {
     "@electron-toolkit/eslint-config-prettier": "^2.0.0",
@@ -415,11 +442,11 @@ trailingComma: none
     "prefix": ""
   },
   "aliases": {
-    "components": "@/components",
-    "utils": "@/lib/utils",
-    "ui": "@/components/ui",
-    "lib": "@/lib",
-    "hooks": "@/hooks"
+    "components": "@renderer/components",
+    "ui": "@renderer/components/ui",
+    "hooks": "@renderer/hooks",
+    "lib": "@renderer/lib",
+    "utils": "@renderer/lib/utils"
   },
   "iconLibrary": "lucide"
 }
@@ -429,11 +456,23 @@ trailingComma: none
 === Content of ./tsconfig.json ===
 {
   "files": [],
-  "references": [{ "path": "./tsconfig.node.json" }, { "path": "./tsconfig.web.json" }],
+  "references": [
+    {
+      "path": "./tsconfig.node.json"
+    },
+    {
+      "path": "./tsconfig.web.json"
+    }
+  ],
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": [
+        "src/renderer/src/*"
+      ],
+      "@renderer/*": [
+        "src/renderer/src/*"
+      ]
     }
   }
 }
@@ -635,7 +674,21 @@ module.exports = {
     'plugin:react/jsx-runtime',
     '@electron-toolkit/eslint-config-ts/recommended',
     '@electron-toolkit/eslint-config-prettier'
-  ]
+  ],
+  rules: {
+    // A temporary hack related to IDE not resolving correct package.json
+    'import/no-extraneous-dependencies': 'off',
+    'react/react-in-jsx-scope': 'off',
+    'react/jsx-filename-extension': 'off',
+    'import/extensions': 'off',
+    'import/no-unresolved': 'off',
+    'import/no-import-module-exports': 'off',
+    'no-shadow': 'off',
+    'no-unused-vars': 'off',
+    '@typescript-eslint/no-unused-vars': 'error',
+    '@typescript-eslint/explicit-function-return-type': 'off',
+    '@typescript-eslint/no-shadow': 'off'
+  }
 }
 
 
@@ -713,13 +766,17 @@ $ npm run build:linux
     "src/renderer/src/env.d.ts",
     "src/renderer/src/**/*",
     "src/renderer/src/**/*.tsx",
-    "src/preload/*.d.ts"
-, "lib"  ],
+    "src/preload/*.d.ts",
+    "lib"
+  ],
   "compilerOptions": {
     "composite": true,
     "jsx": "react-jsx",
     "baseUrl": ".",
     "paths": {
+      "@/*": [
+        "./src/*"
+      ],
       "@renderer/*": [
         "src/renderer/src/*"
       ],
@@ -829,15 +886,84 @@ out
 
 
 === Content of ./src/renderer/src/App.tsx ===
-import electronLogo from './assets/electron.svg'
-import { Button } from '../../components/ui/button'
+// import electronLogo from './assets/electron.svg'
+import { ModeToggle } from './components/theme/toggle-theme'
+import { Button } from './components/ui/button'
+
+import React, { useEffect, useRef } from 'react'
+import { Terminal } from '@xterm/xterm'
+import '@xterm/xterm/css/xterm.css'
+import { FitAddon } from 'xterm-addon-fit'
+import { WebLinksAddon } from 'xterm-addon-web-links'
+import { SearchAddon } from 'xterm-addon-search'
+
+const XTerminal: React.FC = function XTerminal() {
+  const terminalRef = useRef<HTMLDivElement>(null)
+  const commandBuffer = useRef<string>('')
+  const term = useRef(
+    new Terminal({
+      cursorBlink: true,
+      theme: {
+        background: '#1e1e1e',
+        foreground: '#ffffff',
+        cursor: '#00ff00'
+      }
+    })
+  ).current
+
+  const fitAddon = useRef(new FitAddon()).current
+  const webLinksAddon = useRef(new WebLinksAddon()).current
+  const searchAddon = useRef(new SearchAddon()).current
+
+  useEffect(() => {
+    term.loadAddon(fitAddon)
+    term.loadAddon(webLinksAddon)
+    term.loadAddon(searchAddon)
+
+    term.open(terminalRef.current!)
+    fitAddon.fit()
+
+    const socket = new WebSocket('ws://localhost:6969/ws')
+    socket.onmessage = (event) => term.write(event.data)
+    socket.onopen = () => term.writeln('Connected to server')
+    socket.onclose = () => term.writeln('Connection closed')
+    socket.onerror = () => term.writeln('Error connecting to server')
+
+    term.onData((input: string) => {
+      if (input === '\r') {
+        // Enter key
+        const command = commandBuffer.current.trim()
+        if (command) {
+          socket.send(JSON.stringify({ type: 'command', command }))
+          term.writeln('')
+        }
+        commandBuffer.current = ''
+      } else if (input === '\u007F') {
+        // Backspace
+        if (commandBuffer.current.length > 0) {
+          commandBuffer.current = commandBuffer.current.slice(0, -1)
+          term.write('\b \b')
+        }
+      } else {
+        commandBuffer.current += input
+        term.write(input)
+      }
+    })
+
+    return () => {
+      socket.close()
+      term.dispose()
+    }
+  }, [term, fitAddon, webLinksAddon, searchAddon])
+
+  return <div ref={terminalRef} style={{ textAlign: 'left', width: '100%', height: '100%' }} />
+}
 
 function App(): JSX.Element {
   const ipcHandle = (): void => window.electron.ipcRenderer.send('ping')
 
   return (
-    <div className="bg-primary text-white">
-      <img alt="logo" className="logo" src={electronLogo} />
+    <div className="">
       <div className="creator">Powered by electron-vite</div>
       <div className="text">
         Build an Electron app with <span className="react">React</span>
@@ -863,7 +989,9 @@ function App(): JSX.Element {
           </a>
         </div>
       </div>
+      <ModeToggle />
       <Button variant={'destructive'}>Click me</Button>
+      <XTerminal />
     </div>
   )
 }
@@ -878,10 +1006,13 @@ import './index.css'
 import React from 'react'
 import ReactDOM from 'react-dom/client'
 import App from './App'
+import { ThemeProvider } from './provider/theme-provider'
 
 ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
   <React.StrictMode>
-    <App />
+    <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
+      <App />
+    </ThemeProvider>
   </React.StrictMode>
 )
 
@@ -1055,6 +1186,383 @@ button:hover {
 
 .animate-spin-fast {
   animation: spin 0.5s linear infinite;
+}
+
+
+
+=== Content of ./src/renderer/src/provider/theme-provider.tsx ===
+import { createContext, useContext, useEffect, useState } from 'react'
+
+type Theme = 'dark' | 'light' | 'system'
+
+type ThemeProviderProps = {
+  children: React.ReactNode
+  defaultTheme?: Theme
+  storageKey?: string
+}
+
+type ThemeProviderState = {
+  theme: Theme
+  setTheme: (theme: Theme) => void
+}
+
+const initialState: ThemeProviderState = {
+  theme: 'system',
+  setTheme: () => null
+}
+
+const ThemeProviderContext = createContext<ThemeProviderState>(initialState)
+
+export function ThemeProvider({
+  children,
+  defaultTheme = 'system',
+  storageKey = 'vite-ui-theme',
+  ...props
+}: ThemeProviderProps) {
+  const [theme, setTheme] = useState<Theme>(
+    () => (localStorage.getItem(storageKey) as Theme) || defaultTheme
+  )
+
+  useEffect(() => {
+    const root = window.document.documentElement
+
+    root.classList.remove('light', 'dark')
+
+    if (theme === 'system') {
+      const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches
+        ? 'dark'
+        : 'light'
+
+      root.classList.add(systemTheme)
+      return
+    }
+
+    root.classList.add(theme)
+  }, [theme])
+
+  const value = {
+    theme,
+    // eslint-disable-next-line @typescript-eslint/no-shadow
+    setTheme: (theme: Theme) => {
+      localStorage.setItem(storageKey, theme)
+      setTheme(theme)
+    }
+  }
+
+  return (
+    <ThemeProviderContext.Provider {...props} value={value}>
+      {children}
+    </ThemeProviderContext.Provider>
+  )
+}
+
+export const useTheme = () => {
+  const context = useContext(ThemeProviderContext)
+
+  if (context === undefined) throw new Error('useTheme must be used within a ThemeProvider')
+
+  return context
+}
+
+
+
+=== Content of ./src/renderer/src/components/ui/button.tsx ===
+import * as React from 'react'
+import { Slot } from '@radix-ui/react-slot'
+import { cva, type VariantProps } from 'class-variance-authority'
+
+import { cn } from '@renderer/lib/utils'
+
+const buttonVariants = cva(
+  'inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0',
+  {
+    variants: {
+      variant: {
+        default: 'bg-primary text-primary-foreground shadow hover:bg-primary/90',
+        destructive: 'bg-destructive text-destructive-foreground shadow-sm hover:bg-destructive/90',
+        outline:
+          'border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground',
+        secondary: 'bg-secondary text-secondary-foreground shadow-sm hover:bg-secondary/80',
+        ghost: 'hover:bg-accent hover:text-accent-foreground',
+        link: 'text-primary underline-offset-4 hover:underline'
+      },
+      size: {
+        default: 'h-9 px-4 py-2',
+        sm: 'h-8 rounded-md px-3 text-xs',
+        lg: 'h-10 rounded-md px-8',
+        icon: 'h-9 w-9'
+      }
+    },
+    defaultVariants: {
+      variant: 'default',
+      size: 'default'
+    }
+  }
+)
+
+export interface ButtonProps
+  extends React.ButtonHTMLAttributes<HTMLButtonElement>,
+    VariantProps<typeof buttonVariants> {
+  asChild?: boolean
+}
+
+const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
+  ({ className, variant, size, asChild = false, ...props }, ref) => {
+    const Comp = asChild ? Slot : 'button'
+    return (
+      <Comp className={cn(buttonVariants({ variant, size, className }))} ref={ref} {...props} />
+    )
+  }
+)
+Button.displayName = 'Button'
+
+export { Button, buttonVariants }
+
+
+
+=== Content of ./src/renderer/src/components/ui/dropdown-menu.tsx ===
+import * as React from "react"
+import * as DropdownMenuPrimitive from "@radix-ui/react-dropdown-menu"
+import { Check, ChevronRight, Circle } from "lucide-react"
+
+import { cn } from "@renderer/lib/utils"
+
+const DropdownMenu = DropdownMenuPrimitive.Root
+
+const DropdownMenuTrigger = DropdownMenuPrimitive.Trigger
+
+const DropdownMenuGroup = DropdownMenuPrimitive.Group
+
+const DropdownMenuPortal = DropdownMenuPrimitive.Portal
+
+const DropdownMenuSub = DropdownMenuPrimitive.Sub
+
+const DropdownMenuRadioGroup = DropdownMenuPrimitive.RadioGroup
+
+const DropdownMenuSubTrigger = React.forwardRef<
+  React.ElementRef<typeof DropdownMenuPrimitive.SubTrigger>,
+  React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.SubTrigger> & {
+    inset?: boolean
+  }
+>(({ className, inset, children, ...props }, ref) => (
+  <DropdownMenuPrimitive.SubTrigger
+    ref={ref}
+    className={cn(
+      "flex cursor-default gap-2 select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none focus:bg-accent data-[state=open]:bg-accent [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
+      inset && "pl-8",
+      className
+    )}
+    {...props}
+  >
+    {children}
+    <ChevronRight className="ml-auto" />
+  </DropdownMenuPrimitive.SubTrigger>
+))
+DropdownMenuSubTrigger.displayName =
+  DropdownMenuPrimitive.SubTrigger.displayName
+
+const DropdownMenuSubContent = React.forwardRef<
+  React.ElementRef<typeof DropdownMenuPrimitive.SubContent>,
+  React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.SubContent>
+>(({ className, ...props }, ref) => (
+  <DropdownMenuPrimitive.SubContent
+    ref={ref}
+    className={cn(
+      "z-50 min-w-[8rem] overflow-hidden rounded-md border bg-popover p-1 text-popover-foreground shadow-lg data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2",
+      className
+    )}
+    {...props}
+  />
+))
+DropdownMenuSubContent.displayName =
+  DropdownMenuPrimitive.SubContent.displayName
+
+const DropdownMenuContent = React.forwardRef<
+  React.ElementRef<typeof DropdownMenuPrimitive.Content>,
+  React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.Content>
+>(({ className, sideOffset = 4, ...props }, ref) => (
+  <DropdownMenuPrimitive.Portal>
+    <DropdownMenuPrimitive.Content
+      ref={ref}
+      sideOffset={sideOffset}
+      className={cn(
+        "z-50 min-w-[8rem] overflow-hidden rounded-md border bg-popover p-1 text-popover-foreground shadow-md",
+        "data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2",
+        className
+      )}
+      {...props}
+    />
+  </DropdownMenuPrimitive.Portal>
+))
+DropdownMenuContent.displayName = DropdownMenuPrimitive.Content.displayName
+
+const DropdownMenuItem = React.forwardRef<
+  React.ElementRef<typeof DropdownMenuPrimitive.Item>,
+  React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.Item> & {
+    inset?: boolean
+  }
+>(({ className, inset, ...props }, ref) => (
+  <DropdownMenuPrimitive.Item
+    ref={ref}
+    className={cn(
+      "relative flex cursor-default select-none items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-none transition-colors focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50 [&>svg]:size-4 [&>svg]:shrink-0",
+      inset && "pl-8",
+      className
+    )}
+    {...props}
+  />
+))
+DropdownMenuItem.displayName = DropdownMenuPrimitive.Item.displayName
+
+const DropdownMenuCheckboxItem = React.forwardRef<
+  React.ElementRef<typeof DropdownMenuPrimitive.CheckboxItem>,
+  React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.CheckboxItem>
+>(({ className, children, checked, ...props }, ref) => (
+  <DropdownMenuPrimitive.CheckboxItem
+    ref={ref}
+    className={cn(
+      "relative flex cursor-default select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none transition-colors focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
+      className
+    )}
+    checked={checked}
+    {...props}
+  >
+    <span className="absolute left-2 flex h-3.5 w-3.5 items-center justify-center">
+      <DropdownMenuPrimitive.ItemIndicator>
+        <Check className="h-4 w-4" />
+      </DropdownMenuPrimitive.ItemIndicator>
+    </span>
+    {children}
+  </DropdownMenuPrimitive.CheckboxItem>
+))
+DropdownMenuCheckboxItem.displayName =
+  DropdownMenuPrimitive.CheckboxItem.displayName
+
+const DropdownMenuRadioItem = React.forwardRef<
+  React.ElementRef<typeof DropdownMenuPrimitive.RadioItem>,
+  React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.RadioItem>
+>(({ className, children, ...props }, ref) => (
+  <DropdownMenuPrimitive.RadioItem
+    ref={ref}
+    className={cn(
+      "relative flex cursor-default select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none transition-colors focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
+      className
+    )}
+    {...props}
+  >
+    <span className="absolute left-2 flex h-3.5 w-3.5 items-center justify-center">
+      <DropdownMenuPrimitive.ItemIndicator>
+        <Circle className="h-2 w-2 fill-current" />
+      </DropdownMenuPrimitive.ItemIndicator>
+    </span>
+    {children}
+  </DropdownMenuPrimitive.RadioItem>
+))
+DropdownMenuRadioItem.displayName = DropdownMenuPrimitive.RadioItem.displayName
+
+const DropdownMenuLabel = React.forwardRef<
+  React.ElementRef<typeof DropdownMenuPrimitive.Label>,
+  React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.Label> & {
+    inset?: boolean
+  }
+>(({ className, inset, ...props }, ref) => (
+  <DropdownMenuPrimitive.Label
+    ref={ref}
+    className={cn(
+      "px-2 py-1.5 text-sm font-semibold",
+      inset && "pl-8",
+      className
+    )}
+    {...props}
+  />
+))
+DropdownMenuLabel.displayName = DropdownMenuPrimitive.Label.displayName
+
+const DropdownMenuSeparator = React.forwardRef<
+  React.ElementRef<typeof DropdownMenuPrimitive.Separator>,
+  React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.Separator>
+>(({ className, ...props }, ref) => (
+  <DropdownMenuPrimitive.Separator
+    ref={ref}
+    className={cn("-mx-1 my-1 h-px bg-muted", className)}
+    {...props}
+  />
+))
+DropdownMenuSeparator.displayName = DropdownMenuPrimitive.Separator.displayName
+
+const DropdownMenuShortcut = ({
+  className,
+  ...props
+}: React.HTMLAttributes<HTMLSpanElement>) => {
+  return (
+    <span
+      className={cn("ml-auto text-xs tracking-widest opacity-60", className)}
+      {...props}
+    />
+  )
+}
+DropdownMenuShortcut.displayName = "DropdownMenuShortcut"
+
+export {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuCheckboxItem,
+  DropdownMenuRadioItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuShortcut,
+  DropdownMenuGroup,
+  DropdownMenuPortal,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
+  DropdownMenuRadioGroup,
+}
+
+
+
+=== Content of ./src/renderer/src/components/theme/toggle-theme.tsx ===
+import { Moon, Sun } from 'lucide-react'
+import { useTheme } from '../../provider/theme-provider'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger
+} from '@renderer/components/ui/dropdown-menu'
+import { Button } from '../ui/button'
+
+export function ModeToggle() {
+  const { setTheme } = useTheme()
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="outline" size="icon">
+          <Sun className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+          <Moon className="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+          <span className="sr-only">Toggle theme</span>
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end">
+        <DropdownMenuItem onClick={() => setTheme('light')}>Light</DropdownMenuItem>
+        <DropdownMenuItem onClick={() => setTheme('dark')}>Dark</DropdownMenuItem>
+        <DropdownMenuItem onClick={() => setTheme('system')}>System</DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  )
+}
+
+
+
+=== Content of ./src/renderer/src/lib/utils.ts ===
+import { clsx, type ClassValue } from 'clsx'
+import { twMerge } from 'tailwind-merge'
+
+export function cn(...inputs: ClassValue[]): string {
+  return twMerge(clsx(inputs))
 }
 
 
@@ -1348,75 +1856,12 @@ body {
 
 
 
-=== Content of ./src/components/ui/button.tsx ===
-import * as React from 'react'
-import { Slot } from '@radix-ui/react-slot'
-import { cva, type VariantProps } from 'class-variance-authority'
-
-import { cn } from '../../lib/utils'
-
-const buttonVariants = cva(
-  'inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0',
-  {
-    variants: {
-      variant: {
-        default: 'bg-primary text-primary-foreground shadow hover:bg-primary/90',
-        destructive: 'bg-destructive text-destructive-foreground shadow-sm hover:bg-destructive/90',
-        outline:
-          'border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground',
-        secondary: 'bg-secondary text-secondary-foreground shadow-sm hover:bg-secondary/80',
-        ghost: 'hover:bg-accent hover:text-accent-foreground',
-        link: 'text-primary underline-offset-4 hover:underline'
-      },
-      size: {
-        default: 'h-9 px-4 py-2',
-        sm: 'h-8 rounded-md px-3 text-xs',
-        lg: 'h-10 rounded-md px-8',
-        icon: 'h-9 w-9'
-      }
-    },
-    defaultVariants: {
-      variant: 'default',
-      size: 'default'
-    }
-  }
-)
-
-export interface ButtonProps
-  extends React.ButtonHTMLAttributes<HTMLButtonElement>,
-    VariantProps<typeof buttonVariants> {
-  asChild?: boolean
-}
-
-const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant, size, asChild = false, ...props }, ref) => {
-    const Comp = asChild ? Slot : 'button'
-    return (
-      <Comp className={cn(buttonVariants({ variant, size, className }))} ref={ref} {...props} />
-    )
-  }
-)
-Button.displayName = 'Button'
-
-export { Button, buttonVariants }
-
-
-
-=== Content of ./src/lib/utils.ts ===
-import { clsx, type ClassValue } from 'clsx'
-import { twMerge } from 'tailwind-merge'
-
-export function cn(...inputs: ClassValue[]): string {
-  return twMerge(clsx(inputs))
-}
-
-
-
 === Content of ./src/main/index.ts ===
 import { app, shell, BrowserWindow, ipcMain } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
+import startServer from './server'
 
 function createWindow(): void {
   // Create the browser window.
@@ -1467,6 +1912,8 @@ app.whenReady().then(() => {
   // IPC test
   ipcMain.on('ping', () => console.log('pong'))
 
+  startServer()
+
   createWindow()
 
   app.on('activate', function () {
@@ -1487,6 +1934,116 @@ app.on('window-all-closed', () => {
 
 // In this file you can include the rest of your app"s specific main process
 // code. You can also put them in separate files and require them here.
+
+
+
+=== Content of ./src/main/server.ts ===
+import { WebSocketServer } from 'ws'
+import express from 'express'
+import cors from 'cors'
+import http from 'http'
+import os from 'os'
+import nodePty from 'node-pty'
+
+// const isDevelopment = process.env.NODE_ENV === 'development'
+// const nodePty = isDevelopment
+//   ? require('node-pty') // Load from node_modules in development
+//   : require(path.join(app.getAppPath(), 'release/app/node_modules/node-pty')) // Load from release/app in production
+
+import path from 'path'
+
+// Electron-specific imports
+import { app } from 'electron'
+
+// const isDevelopment = process.env.NODE_ENV === 'development';
+const appPath = app.isPackaged ? path.join(process.resourcesPath, 'assets') : process.cwd()
+
+const appExpress = express()
+const shell = os.platform() === 'win32' ? 'powershell.exe' : 'bash'
+
+// Enable CORS for all origins
+appExpress.use(cors())
+
+// Basic HTTP route
+appExpress.get('/', (req, res) => {
+  res.send('Hello World!')
+})
+
+// Create an HTTP server
+const server = http.createServer(appExpress)
+
+// Attach WebSocket server to the HTTP server
+const wss = new WebSocketServer({ server, path: '/ws' })
+
+// List of allowed commands (whitelist approach)
+const allowedCommands: string[] = ['echo', 'git', 'ls', 'pwd', 'whoami'] // Add safe commands here
+
+wss.on('connection', (ws) => {
+  console.log('New WebSocket connection')
+
+  const ptyProcess = nodePty.spawn(shell, [], {
+    name: 'xterm-color',
+    cwd: appPath,
+    env: process.env
+  })
+
+  let initialized = false
+
+  ptyProcess.onData((data: string) => {
+    if (!initialized) {
+      if (data.includes('bash-3.2$')) {
+        initialized = true
+        ws.send(data.trim())
+      }
+    } else {
+      ws.send(data)
+    }
+  })
+
+  ws.on('message', (message: string) => {
+    try {
+      const parsedData = JSON.parse(message)
+
+      if (parsedData.type === 'command' && parsedData.command) {
+        const command = parsedData.command.trim().split(' ')[0]
+        console.log('Received command:', command)
+
+        if (allowedCommands.includes(command)) {
+          ptyProcess.write(`${parsedData.command}\n`)
+        } else {
+          ws.send(
+            `"${parsedData.command}" Command not allowed. Use commands like 'git clone <url>' or check your input.`
+          )
+        }
+      } else {
+        ws.send(JSON.stringify({ error: 'Invalid message format' }))
+      }
+    } catch (error) {
+      console.error('Invalid JSON received:', message)
+      ws.send(JSON.stringify({ error: 'Invalid JSON format' }))
+    }
+  })
+
+  ws.on('close', () => {
+    console.log('WebSocket connection closed')
+    ptyProcess.kill()
+  })
+
+  ws.on('error', (error) => {
+    console.error('WebSocket error:', error)
+  })
+
+  ptyProcess.onExit(({ exitCode }: { exitCode: number }) => {
+    console.log(`PTY process exited with code ${exitCode}`)
+  })
+})
+
+// Start the HTTP server
+export default function startServer() {
+  server.listen(6969, () => {
+    console.log('Express Server started on port 6969')
+  })
+}
 
 
 
