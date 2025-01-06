@@ -45,7 +45,7 @@ const ProjectCard: React.FC<ProjectCardProps> = (props: ProjectCardProps) => {
         {props.isLinkedToRemote ? (
           <Button onClick={props.onOpenProject}>Open</Button>
         ) : (
-          <Button onClick={props.onOpenProject}>
+          <Button onClick={props.onOpenTerminal}>
             <Github className=" h-4 w-4" />
             Link to remote
           </Button>

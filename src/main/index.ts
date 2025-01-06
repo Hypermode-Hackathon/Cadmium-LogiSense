@@ -1,9 +1,10 @@
-import { app, shell, BrowserWindow, ipcMain } from 'electron'
+import { app, shell, BrowserWindow, ipcMain, Notification } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
 import { startServer } from './server/server'
 import { initializeDB } from './server/config/sqlite'
+import { FromMainPayload, ToMainPayload } from './types/types'
 
 function createWindow(): void {
   // Create the browser window.
@@ -36,6 +37,22 @@ function createWindow(): void {
     mainWindow.loadFile(join(__dirname, '../renderer/index.html'))
   }
 }
+
+ipcMain.on('toMain', (event, args: ToMainPayload) => {
+  console.log('Message received from renderer:', args)
+
+  // Show a notification
+  new Notification({
+    title: 'Error occured in your application',
+    body: args.message
+  }).show()
+
+  const response: FromMainPayload = {
+    response: `Notification displayed for message: "${args.message}"`
+  }
+
+  event.sender.send('fromMain', response)
+})
 
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
