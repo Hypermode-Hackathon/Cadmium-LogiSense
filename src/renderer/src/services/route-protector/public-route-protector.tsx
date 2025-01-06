@@ -28,7 +28,7 @@ type Props = {
  * - The child components if the user is not authenticated.
  */
 const PublicRouteProtector: React.FC<Props> = ({ children }) => {
-  const { isLoggedIn, setIsLoggedIn } = useAuthStore() // Zustand state for auth
+  const { isLoggedIn, setIsLoggedIn, setOrganization, organization } = useAuthStore() // Zustand state for auth
   const [loading, setLoading] = React.useState(false)
   const location = useLocation()
   const validate = async (cd_id: string, cd_secret: string) => {
@@ -37,6 +37,8 @@ const PublicRouteProtector: React.FC<Props> = ({ children }) => {
       const res = await LOCAL_AXIOS_INSTANCE.post('/validation', { cd_id, cd_secret })
       if (res.data.isValid) {
         setIsLoggedIn(true)
+        setOrganization(res.data.return.organization_name)
+        localStorage.setItem('organization_name', res.data.return.organization_name)
       }
     } catch (error: Error | any) {
       localStorage.removeItem('cd_id')
@@ -59,7 +61,7 @@ const PublicRouteProtector: React.FC<Props> = ({ children }) => {
 
   // If the user is logged in, redirect to the /${org_name}/projects page
   if (isLoggedIn) {
-    return <Navigate to="/rosterly/projects" state={{ from: location }} replace />
+    return <Navigate to={`/${organization}/projects`} state={{ from: location }} replace />
   }
 
   if (loading) {

@@ -4,7 +4,7 @@ import THead from './t-head'
 import { LogTableEntry } from '../../../../../../types/type'
 import { useLogStore } from '../../../../../../stores/useLogStore'
 import TBody from './t-body'
-import { SolutionSlideOver } from '../Solution-SlideOver'
+import { SolutionSlideOver } from '../solution-slideover'
 import { Typography } from '../../../../../../components/ui/typography'
 import { useParams } from 'react-router-dom'
 import { fetchLogTableData } from '../../../../../../services/api/fetch-log-table-data'
@@ -54,20 +54,25 @@ const LogTable: React.FC = () => {
       <Typography variant="xl" className=" px-2 py-2 ">
         Error logs
       </Typography>
-      {/* <div className='w-full max-h-[calc(100dvh-46dvh)] overflow-y-scroll relative scrollbar scrollbar-hide'> */}
-      <InfiniteScroll
-        dataLength={tableData.length} // Current data length
-        next={fetchMoreData} // Function to fetch the next page
-        hasMore={tableData.length >= limit} // Stop scrolling when all logs are loaded
-        loader={loading && <p className="text-center my-4">Loading...</p>} // Loader shown during fetch
-        scrollableTarget="scrollableDiv" // Target for scrollable container
+      <Table>
+        <THead />
+      </Table>
+      <div
+        id="scrollableDiv"
+        className="w-full max-h-[calc(100dvh-46dvh)] overflow-y-scroll relative scrollbar scrollbar-hide"
       >
-        <Table>
-          <THead />
-          <TBody tableData={tableData ?? []} onRowClick={handleRowClick} />
-        </Table>
-      </InfiniteScroll>
-      {/* </div> */}
+        <InfiniteScroll
+          dataLength={tableData.length} // Current data length
+          next={fetchMoreData} // Function to fetch the next page
+          hasMore={tableData.length >= limit} // Stop scrolling when all logs are loaded
+          loader={loading && <p className="text-center my-4">Loading...</p>} // Loader shown during fetch
+          scrollableTarget="scrollableDiv" // Target for scrollable container
+        >
+          <Table>
+            <TBody tableData={tableData ?? []} onRowClick={handleRowClick} />
+          </Table>
+        </InfiniteScroll>
+      </div>
       {isLoading ? (
         <p className="text-center my-5">Loading...</p>
       ) : error ? (

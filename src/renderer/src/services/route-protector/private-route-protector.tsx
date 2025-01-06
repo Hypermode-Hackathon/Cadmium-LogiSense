@@ -39,7 +39,8 @@ const PrivateRouteProtector: React.FC<Props> = ({ children }) => {
       const res = await LOCAL_AXIOS_INSTANCE.post('/validation', { cd_id, cd_secret })
       if (res.data.isValid) {
         setIsLoggedIn(true)
-        setOrganization('Rosterly')
+        setOrganization(res.data.return.organization_name)
+        localStorage.setItem('organization_name', res.data.return.organization_name)
       }
     } catch (error: Error | any) {
       localStorage.clear()
@@ -62,23 +63,6 @@ const PrivateRouteProtector: React.FC<Props> = ({ children }) => {
       localStorage.clear()
     }
   }, [])
-
-  // useEffect(() => {
-  //     const cd_id = localStorage.getItem("cd_id");
-  //     const cd_secret = localStorage.getItem("cd_secret");
-  //     if (cd_id && cd_secret) {
-  //         CLOUD_AXIOS_INSTANCE.delete("/applications/6763e460e935a4127b381ebd", {
-  //             headers: {
-  //                 "Content-Type": "application/json",
-  //                 "CD-ID": cd_id,
-  //                 "CD-Secret": cd_secret
-  //             }
-  //         })
-  //     } else {
-  //         navigate("/login", { state: { from: location }, replace: true });
-  //         localStorage.clear();
-  //     }
-  // }, []);
 
   if (loading) {
     return (

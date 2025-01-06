@@ -22,7 +22,7 @@ export function StackTrace({ traceback }: StackTraceProps) {
       >
         <AccordionItem value="item-1">
           {/* Accordion Trigger */}
-          <AccordionTrigger className="text-sm bg-gray-800 text-gray-300 hover:bg-gray-700 hover:text-gray-100 rounded-md px-3 py-2 transition-all focus:outline-none focus:ring-2 focus:ring-blue-500">
+          <AccordionTrigger className="text-sm bg-gray-800 text-gray-300 hover:bg-gray-700 hover:text-gray-100 rounded-md px-3 py-2 transition-all focus:outline-none focus:ring-2 focus:ring-accent">
             <Typography variant="small" className="font-semibold tracking-wide">
               Stack Trace
             </Typography>

@@ -4,7 +4,7 @@ import { TableHead, TableHeader, TableRow } from '../../../../../../components/u
 const THead: React.FC = () => {
   return (
     <TableHeader>
-      <TableRow>
+      <TableRow className="hover:bg-transparent">
         <TableHead className="w-[100px]">Timestamp</TableHead>
         <TableHead className="text-left ">Error message</TableHead>
         <TableHead className="w-[50px] ">Method</TableHead>

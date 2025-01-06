@@ -10,10 +10,10 @@ import {
 
 import { DialogTitle } from '@radix-ui/react-dialog'
 import { LogTableEntry } from '../../../../../../types/type'
-import { RagInference } from './rag-inference'
-import { StackTrace } from './stack-trace'
-import { GeneralInfo } from './general-info'
 import { useLogStore } from '../../../../../../stores/useLogStore'
+import { GeneralInfo } from './general-info'
+import { StackTrace } from './stack-trace'
+import RagInference from './rag-inference'
 
 export interface SlideOverProps {
   open: boolean

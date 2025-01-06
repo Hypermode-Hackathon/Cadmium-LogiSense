@@ -28,6 +28,7 @@ import { NavMain } from './nav-main'
 import { NavSecondary } from './nav-secondary'
 import { NavUser } from './nav-user'
 import CustomLink from '../../ui/link'
+import { useAuthStore } from '../../../stores/useAuthStore'
 
 const data = {
   user: {
@@ -187,13 +188,14 @@ const data = {
 }
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const { organization } = useAuthStore() // Zustand state for auth
   return (
     <Sidebar variant="inset" {...props}>
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton size="lg" asChild>
-              <CustomLink to="/rosterly/projects/">
+              <CustomLink to={`/${organization}/projects/`}>
                 <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
                   <img src="/rosterly.png" alt="" className="rounded-sm" />
                 </div>
