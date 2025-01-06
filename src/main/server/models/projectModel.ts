@@ -21,7 +21,7 @@ export const ProjectModel = {
     const stmt = db.prepare(`
             SELECT * FROM projects WHERE project_id = ?
         `)
-    console.log('stmt ===>>', stmt)
+    // console.log('stmt ===>>', stmt)
     return stmt.get(id)
   },
 
