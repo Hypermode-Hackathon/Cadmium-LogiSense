@@ -1,10 +1,8 @@
-import ComingSoon from '@/pages/coming-soon'
+import ComingSoon from '../../../../pages/coming-soon'
 import React from 'react'
 
 const Analyze: React.FC = () => {
-    return (
-        <ComingSoon />
-    )
+  return <ComingSoon />
 }
 
 export default Analyze

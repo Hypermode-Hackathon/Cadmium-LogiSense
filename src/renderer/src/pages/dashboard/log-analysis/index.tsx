@@ -1,39 +1,39 @@
-import React from 'react';
-import Header from './header';
-import { useParams } from 'react-router-dom';
-import NotFound from '@/pages/not-found/not-found';
-import Analyze from './analyze';
-import Configure from './congfigure';
-import Explorer from './explorer';
+import React from 'react'
+import Header from './header'
+import { useParams } from 'react-router-dom'
+import NotFound from '../../../pages/not-found/not-found'
+import Analyze from './analyze'
+import Configure from './congfigure'
+import Explorer from './explorer'
 
-type Submodule = 'explorer' | 'analyze' | 'configure';
+type Submodule = 'explorer' | 'analyze' | 'configure'
 
 const LogAnalysis: React.FC = () => {
-    const { submodule } = useParams<{ submodule: Submodule }>(); // Treat as a string to handle unmatched cases
+  const { submodule } = useParams<{ submodule: Submodule }>() // Treat as a string to handle unmatched cases
 
-    let content;
+  let content
 
-    switch (submodule) {
-        case 'explorer':
-            content = <Explorer />;
-            break;
-        case 'analyze':
-            content = <Analyze />;
-            break;
-        case 'configure':
-            content = <Configure />;
-            break;
-        default:
-            content = <NotFound />; // Default case for unmatched submodules
-            break;
-    }
+  switch (submodule) {
+    case 'explorer':
+      content = <Explorer />
+      break
+    case 'analyze':
+      content = <Analyze />
+      break
+    case 'configure':
+      content = <Configure />
+      break
+    default:
+      content = <NotFound /> // Default case for unmatched submodules
+      break
+  }
 
-    return (
-        <div className="flex flex-col mb-[5vh] w-full">
-            <Header />
-            {content}
-        </div>
-    );
-};
+  return (
+    <div className="flex flex-col mb-[5vh] w-full">
+      <Header />
+      {content}
+    </div>
+  )
+}
 
-export default LogAnalysis;
+export default LogAnalysis

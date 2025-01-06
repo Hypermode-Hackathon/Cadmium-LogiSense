@@ -1,5 +1,4 @@
 import React from 'react'
-import { Button } from './button'
 import {
   Card,
   CardContent,
@@ -7,11 +6,12 @@ import {
   CardFooter,
   CardHeader,
   CardTitle
-} from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { ProjectCardProps } from '@/types/type'
-import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+} from '../../components/ui/card'
+import { Badge } from '../../components/ui/badge'
+import { ProjectCardProps } from '../../types/type'
+import { Avatar, AvatarFallback } from '../../components/ui/avatar'
 import { Github } from 'lucide-react'
+import { Button } from '../../components/ui/button'
 
 const ProjectCard: React.FC<ProjectCardProps> = (props: ProjectCardProps) => {
   return (

@@ -1,4 +1,4 @@
-import { Button } from './button'
+import { Button } from '../../../../../../components/ui/button'
 import {
   Sheet,
   SheetClose,
@@ -6,14 +6,14 @@ import {
   SheetDescription,
   SheetFooter,
   SheetHeader
-} from '@/components/ui/sheet'
+} from '../../../../../../components/ui/sheet'
 
 import { DialogTitle } from '@radix-ui/react-dialog'
-import { LogTableEntry } from '@/types/type'
+import { LogTableEntry } from '../../../../../../types/type'
 import { RagInference } from './rag-inference'
 import { StackTrace } from './stack-trace'
 import { GeneralInfo } from './general-info'
-import { useLogStore } from '@/stores/useLogStore'
+import { useLogStore } from '../../../../../../stores/useLogStore'
 
 export interface SlideOverProps {
   open: boolean

@@ -7,15 +7,16 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger
-} from '@/components/ui/dialog'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Button } from './button'
-import { Typography } from '@/components/ui/typography'
-import { useProjectCreateStore } from '@/stores/useProjectCreateStore'
-import { validateProjectForm } from '@/services/validation/create-project'
-import { createProject } from '@/services/api/create-project'
-import { toast } from '@/hooks/use-toast'
+} from '../../components/ui/dialog'
+import { Input } from '../../components/ui/input'
+import { Label } from '../../components/ui/label'
+
+import { Typography } from '../../components/ui/typography'
+import { useProjectCreateStore } from '../../stores/useProjectCreateStore'
+import { validateProjectForm } from '../../services/validation/create-project'
+import { createProject } from '../../services/api/create-project'
+import { toast } from '../../hooks/use-toast'
+import { Button } from '../../components/ui/button'
 
 export default function AddProject() {
   const { setName, setDescription, openModal, setOpenModal, name, description, loading, errors } =
@@ -65,7 +66,7 @@ export default function AddProject() {
           <DialogHeader>
             <DialogTitle>New project</DialogTitle>
             <DialogDescription>
-              Make changes to your project here. Click save when you're done.
+              Make changes to your project here. Click save when you&lsquo;re done.
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">

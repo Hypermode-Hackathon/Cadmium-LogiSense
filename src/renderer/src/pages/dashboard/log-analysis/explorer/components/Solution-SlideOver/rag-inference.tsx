@@ -1,49 +1,43 @@
-import React, { useState } from "react";
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
-import rehypeRaw from "rehype-raw";
-import { Typography } from "@/components/ui/typography";
-import { Copy, Check } from "lucide-react";
-import CodeBlock from "@/components/custom/global/code-block";
+import React, { useState } from 'react'
+import ReactMarkdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
+import rehypeRaw from 'rehype-raw'
+import { Typography } from '../../../../../../components/ui/typography'
+import { Copy, Check } from 'lucide-react'
+import CodeBlock from '../../../../../../components/custom/global/code-block'
 
 export interface RagInferenceProps {
-  ragResponse: string | undefined;
+  ragResponse: string | undefined
 }
 // Extend the props for `ol` and `li` components
 interface CustomOlProps extends React.OlHTMLAttributes<HTMLOListElement> {
-  ordered?: boolean;
+  ordered?: boolean
 }
 
 interface CustomLiProps extends React.LiHTMLAttributes<HTMLLIElement> {
-  ordered?: boolean;
+  ordered?: boolean
 }
 
 export function RagInference({ ragResponse }: RagInferenceProps) {
-  const [copiedCode, setCopiedCode] = useState<string | null>(null);
+  const [copiedCode, setCopiedCode] = useState<string | null>(null)
 
   const handleCopySuccess = (text: string) => {
-    navigator.clipboard.writeText(text);
-    setCopiedCode(text);
-    setTimeout(() => setCopiedCode(null), 6000); // Reset the copied state after 2 seconds
-  };
+    navigator.clipboard.writeText(text)
+    setCopiedCode(text)
+    setTimeout(() => setCopiedCode(null), 6000) // Reset the copied state after 2 seconds
+  }
 
   if (!ragResponse) {
     return (
-      <Typography
-        variant="sm"
-        className="text-center text-gray-400 my-8"
-      >
+      <Typography variant="sm" className="text-center text-gray-400 my-8">
         No inference found to resolve
       </Typography>
-    );
+    )
   }
 
   return (
     <div className="bg-gray-900 text-gray-100 p-8 rounded-lg shadow-lg">
-      <Typography
-        variant="small"
-        className="font-semibold text-lg text-gray-100 mb-6"
-      >
+      <Typography variant="small" className="font-semibold text-lg text-gray-100 mb-6">
         Steps to Resolve
       </Typography>
       <div className="text-sm leading-7 text-gray-300">
@@ -52,19 +46,14 @@ export function RagInference({ ragResponse }: RagInferenceProps) {
           rehypePlugins={[rehypeRaw]}
           components={{
             code({ className, children, ...props }) {
-              const match = /language-(\w+)/.exec(className || "");
-              const language = match ? match[1].toLowerCase() : "code";
-              const code = String(children).replace(/\n$/, "");
+              const match = /language-(\w+)/.exec(className || '')
+              const language = match ? match[1].toLowerCase() : 'code'
+              const code = String(children).replace(/\n$/, '')
 
               return match ? (
-                <div
-                  className="relative my-4 bg-gray-800 border border-gray-700 rounded-lg p-4 hover:shadow-md transition-shadow duration-200"
-                >
+                <div className="relative my-4 bg-gray-800 border border-gray-700 rounded-lg p-4 hover:shadow-md transition-shadow duration-200">
                   <div className="flex items-center justify-between mb-2">
-                    <Typography
-                      variant="sm"
-                      className="text-gray-400"
-                    >
+                    <Typography variant="sm" className="text-gray-400">
                       {language}
                     </Typography>
                     <button
@@ -85,8 +74,6 @@ export function RagInference({ ragResponse }: RagInferenceProps) {
                         )}
                       </div>
                     </button>
-
-
                   </div>
                   <CodeBlock codeString={code} language={language} />
                 </div>
@@ -97,13 +84,10 @@ export function RagInference({ ragResponse }: RagInferenceProps) {
                 >
                   {children}
                 </code>
-              );
+              )
             },
             strong: ({ ...props }) => (
-              <strong
-                className="font-bold text-gray-100 shadow-sm"
-                {...props}
-              />
+              <strong className="font-bold text-gray-100 shadow-sm" {...props} />
             ),
             h1: ({ ...props }) => (
               <h1
@@ -112,23 +96,12 @@ export function RagInference({ ragResponse }: RagInferenceProps) {
               />
             ),
             h2: ({ ...props }) => (
-              <h2
-                className="text-2xl font-semibold text-gray-200 my-5"
-                {...props}
-              />
+              <h2 className="text-2xl font-semibold text-gray-200 my-5" {...props} />
             ),
             h3: ({ ...props }) => (
-              <h3
-                className="text-xl font-semibold text-gray-300 my-4"
-                {...props}
-              />
+              <h3 className="text-xl font-semibold text-gray-300 my-4" {...props} />
             ),
-            p: ({ ...props }) => (
-              <p
-                className="my-4 text-gray-300"
-                {...props}
-              />
-            ),
+            p: ({ ...props }) => <p className="my-4 text-gray-300" {...props} />,
             blockquote: ({ ...props }) => (
               <blockquote
                 className="border-l-8 bg-gray-800 text-blue-400 italic p-4 my-6 rounded-lg"
@@ -136,10 +109,7 @@ export function RagInference({ ragResponse }: RagInferenceProps) {
               />
             ),
             ul: ({ ...props }) => (
-              <ul
-                className="list-disc pl-6 my-4 text-gray-300 space-y-2"
-                {...props}
-              />
+              <ul className="list-disc pl-6 my-4 text-gray-300 space-y-2" {...props} />
             ),
             ol: ({ ordered, children, ...props }: CustomOlProps) => {
               if (ordered) {
@@ -154,22 +124,19 @@ export function RagInference({ ragResponse }: RagInferenceProps) {
                       </div>
                     ))}
                   </ol>
-                );
+                )
               }
               return (
-                <ol
-                  className="list-decimal pl-6 my-4 text-gray-300 space-y-2"
-                  {...props}
-                >
+                <ol className="list-decimal pl-6 my-4 text-gray-300 space-y-2" {...props}>
                   {children}
                 </ol>
-              );
+              )
             },
             li: ({ ordered, ...props }: CustomLiProps) => {
               if (ordered) {
-                return <li className="flex-1" {...props} />;
+                return <li className="flex-1" {...props} />
               }
-              return <li {...props} />;
+              return <li {...props} />
             },
             a: ({ ...props }) => (
               <a
@@ -180,11 +147,7 @@ export function RagInference({ ragResponse }: RagInferenceProps) {
               />
             ),
             img: ({ ...props }) => (
-              <img
-                className="my-6 rounded-lg shadow-md border border-gray-700"
-                alt=""
-                {...props}
-              />
+              <img className="my-6 rounded-lg shadow-md border border-gray-700" alt="" {...props} />
             ),
             table: ({ ...props }) => (
               <table
@@ -199,18 +162,15 @@ export function RagInference({ ragResponse }: RagInferenceProps) {
               />
             ),
             td: ({ ...props }) => (
-              <td
-                className="border border-gray-700 p-3 text-gray-300"
-                {...props}
-              />
-            ),
+              <td className="border border-gray-700 p-3 text-gray-300" {...props} />
+            )
           }}
         >
           {ragResponse}
         </ReactMarkdown>
       </div>
     </div>
-  );
+  )
 }
 
-export default RagInference;
+export default RagInference
