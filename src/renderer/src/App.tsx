@@ -65,8 +65,8 @@ const router = createBrowserRouter([
       <Suspense fallback={<div className="text-center">Loading...</div>}>
         <PrivateRouteProtector>
           <SidebarProvider>
-            <AppSidebar variant="inset" />
-            <SidebarInset>
+            <AppSidebar variant="inset" className="" />
+            <SidebarInset className="">
               <LogAnalysis />
             </SidebarInset>
           </SidebarProvider>
