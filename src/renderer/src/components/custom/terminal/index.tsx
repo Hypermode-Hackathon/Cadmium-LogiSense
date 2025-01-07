@@ -2,10 +2,11 @@ import React, { useEffect, useRef } from 'react'
 import { Terminal } from '@xterm/xterm'
 import '@xterm/xterm/css/xterm.css'
 
-// Establish WebSocket connection
-// Establish WebSocket connection
+type Props = {
+  projectId: string | null
+}
 
-const XTerminal: React.FC = () => {
+const XTerminal: React.FC<Props> = ({ projectId }) => {
   const terminalRef = useRef<HTMLDivElement>(null)
   const socketRef = useRef<WebSocket | null>(null)
   const commandBuffer = useRef<string>('') // Buffer to store the user's input
@@ -53,7 +54,7 @@ const XTerminal: React.FC = () => {
         // User pressed Enter, send the command to the backend
         const command = commandBuffer.current.trim()
         if (command && socket.readyState === WebSocket.OPEN) {
-          socket.send(JSON.stringify({ type: 'command', command }))
+          socket.send(JSON.stringify({ type: 'command', command, projectId }))
           term.write(`\r\n`) // Move to the next line
         } else if (!command) {
           term.write('\r\n') // Just move to the next line for empty input

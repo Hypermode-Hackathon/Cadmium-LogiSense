@@ -13,6 +13,7 @@ export default function Projects() {
   const { projectList } = useProjectListStore()
   const navigate = useNavigate()
   const [isDrawerOpen, setIsDrawerOpen] = useState(false)
+  const [idTiLick, setIdToLink] = useState<string | null>(null)
 
   useQuery({
     queryKey: [organization, 'projects'],
@@ -54,13 +55,14 @@ export default function Projects() {
               }}
               onOpenTerminal={() => {
                 setIsDrawerOpen(true)
+                setIdToLink(project.id)
               }}
             />
           ))}
         </div>
       </div>
 
-      <LinkProjectDrawer open={isDrawerOpen} onOpenChange={setIsDrawerOpen} />
+      <LinkProjectDrawer open={isDrawerOpen} onOpenChange={setIsDrawerOpen} projectId={idTiLick} />
 
       <div className="flex flex-1 flex-col justify-center gap-4 p-4 ">
         <AddProject />

@@ -14,9 +14,10 @@ import XTerminal from '../../components/custom/terminal'
 type Props = {
   open: boolean
   onOpenChange: React.Dispatch<React.SetStateAction<boolean>>
+  projectId: string | null
 }
 
-const LinkProjectDrawer: React.FC<Props> = ({ open, onOpenChange }) => {
+const LinkProjectDrawer: React.FC<Props> = ({ open, onOpenChange, projectId }) => {
   return (
     <Drawer open={open} onOpenChange={onOpenChange}>
       <DrawerContent>
@@ -50,7 +51,7 @@ const LinkProjectDrawer: React.FC<Props> = ({ open, onOpenChange }) => {
         </DrawerHeader>
         <DrawerFooter>
           <div className="bg-black p-2 rounded-md">
-            <XTerminal />
+            <XTerminal projectId={projectId} />
           </div>
         </DrawerFooter>
       </DrawerContent>
