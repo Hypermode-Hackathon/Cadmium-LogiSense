@@ -25,7 +25,7 @@ const handleCreateProject = async (req: Request, res: Response): Promise<void> =
       return
     }
 
-    const PROJECT_PATH = path.resolve(__dirname, `../target-codebases/${project_id}`)
+    const PROJECT_PATH = path.resolve(__dirname, `../../target-codebases/${project_id}`)
     if (!fs.existsSync(PROJECT_PATH)) {
       fs.mkdirSync(PROJECT_PATH, { recursive: true })
     }

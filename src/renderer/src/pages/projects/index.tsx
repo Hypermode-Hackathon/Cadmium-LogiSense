@@ -5,11 +5,15 @@ import { useAuthStore } from '../../stores/useAuthStore'
 import { fetchProjectList } from '../../services/api/fetch-projects--list'
 import { useProjectListStore } from '../../stores/useProjectListStore'
 import { useQuery } from '@tanstack/react-query'
+import { useState } from 'react'
+import LinkProjectDrawer from './link-project-drawer'
 
 export default function Projects() {
   const { organization, isLoggedIn } = useAuthStore()
   const { projectList } = useProjectListStore()
   const navigate = useNavigate()
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false)
+  const [idTiLick, setIdToLink] = useState<string | null>(null)
 
   useQuery({
     queryKey: [organization, 'projects'],
@@ -49,11 +53,17 @@ export default function Projects() {
               onOpenProject={() => {
                 navigate(`/${organization}/projects/${project.id}/log-analysis/explorer`)
               }}
-              onOpenTerminal={() => {}}
+              onOpenTerminal={() => {
+                setIsDrawerOpen(true)
+                setIdToLink(project.id)
+              }}
             />
           ))}
         </div>
       </div>
+
+      <LinkProjectDrawer open={isDrawerOpen} onOpenChange={setIsDrawerOpen} projectId={idTiLick} />
+
       <div className="flex flex-1 flex-col justify-center gap-4 p-4 ">
         <AddProject />
       </div>

@@ -5,7 +5,6 @@ import ReactDOM from 'react-dom/client'
 import App from './App'
 import { ThemeProvider } from './provider/theme-provider'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import XTerminal from './components/custom/terminal'
 
 const queryClient = new QueryClient()
 
@@ -14,7 +13,6 @@ ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
     <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
       <QueryClientProvider client={queryClient}>
         <App />
-        <XTerminal />
       </QueryClientProvider>
     </ThemeProvider>
   </React.StrictMode>

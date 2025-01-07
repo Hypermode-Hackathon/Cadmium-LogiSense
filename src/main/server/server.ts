@@ -28,53 +28,66 @@ const server = http.createServer(app)
 
 // Attach WebSocket server to the HTTP server
 const wss = new WebSocketServer({ server, path: '/ws' })
-
+console.log('command execution path:', process.cwd() + '/target-codebases/')
 // List of allowed commands (whitelist approach)
 const allowedCommands = ['echo', 'git', 'ls', 'pwd', 'whoami'] // Add safe commands here
 
 wss.on('connection', (ws) => {
   console.log('New WebSocket connection')
 
-  // console.log('shell -=-=-=->>:', shell)
-  // Start a pty process for the shell
-  const ptyProcess = pty.spawn(shell, [], {
-    name: 'xterm-color',
-    cwd: process.cwd(), // Start in the current working directory
-    env: process.env
-  })
-
-  // console.log('ptyProcess -=-=-=->>:', ptyProcess)
-
+  let ptyProcess: pty.IPty | null = null
   let initialized = false
-
-  // Send shell output to WebSocket
-  ptyProcess.onData((data) => {
-    console.log('data -=-=-=->>:', data)
-    if (!initialized) {
-      // Filter out initial messages (e.g., shell intro)
-      if (data.includes('bash-3.2$')) {
-        initialized = true // Mark initialization as done
-        ws.send(data.trim()) // Send only the prompt
-      }
-    } else {
-      ws.send(data)
-    }
-  })
 
   ws.on('message', (message) => {
     try {
       const parsedData = JSON.parse(message.toString())
+      const { projectId, type, command } = parsedData
 
-      if (parsedData.type === 'command' && parsedData.command) {
-        const command = parsedData.command.trim().split(' ')[0] // Extract the base command
-        console.log('command========>>>', command)
-        // Check if the command is allowed
-        if (allowedCommands.includes(command)) {
-          // Write command to the pty process
-          ptyProcess.write(`${parsedData.command}\n`)
+      if (type === 'command' && command) {
+        if (!ptyProcess) {
+          if (!projectId) {
+            ws.send(JSON.stringify({ error: 'Project ID is required to initialize the terminal.' }))
+            return
+          }
+
+          // Dynamically set cwd based on projectId
+          const projectPath = process.cwd() + '/target-codebases/' + projectId
+
+          // Initialize the PTY process with the project directory
+          ptyProcess = pty.spawn(shell, [], {
+            name: 'xterm-color',
+            cwd: projectPath,
+            env: process.env
+          })
+
+          console.log(`PTY process initialized for project: ${projectPath}`)
+
+          // Send shell output to WebSocket
+          ptyProcess.onData((data) => {
+            if (!initialized) {
+              if (data.includes('bash-3.2$')) {
+                initialized = true
+                ws.send(data.trim())
+              }
+            } else {
+              ws.send(data)
+            }
+          })
+
+          ptyProcess.onExit(({ exitCode }) => {
+            console.log(`PTY process exited with code ${exitCode}`)
+          })
+        }
+
+        // Process the command
+        const baseCommand = command.trim().split(' ')[0]
+        console.log(`Project ID: ${projectId}, Command: ${baseCommand}`)
+
+        if (allowedCommands.includes(baseCommand)) {
+          ptyProcess.write(`${command}\n`)
         } else {
           ws.send(
-            `"${parsedData.command}" Command not allowed. Please use the terminal to connect cadmium with your project codebase. \r\nYou can use the following commands: 'git clone <repository-url>'\r\nbash-3.2$ `
+            `"${command}" Command not allowed. Please use the terminal to connect Cadmium with your project codebase. \r\nYou can use the following commands: 'git clone <repository-url>'\r\nbash-3.2$ `
           )
         }
       } else {
@@ -88,17 +101,14 @@ wss.on('connection', (ws) => {
 
   ws.on('close', () => {
     console.log('WebSocket connection closed')
-    ptyProcess.kill()
+    if (ptyProcess) {
+      ptyProcess.kill()
+      ptyProcess = null
+    }
   })
 
   ws.on('error', (error) => {
     console.error('WebSocket error:', error)
-  })
-
-  ptyProcess.onExit(({ exitCode }) => {
-    console.log('Spawning shell:', shell)
-
-    console.log(`PTY process exited with code ${exitCode}`)
   })
 })
 
