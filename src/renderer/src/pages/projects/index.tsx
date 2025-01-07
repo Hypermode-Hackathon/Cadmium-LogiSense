@@ -62,7 +62,15 @@ export default function Projects() {
         </div>
       </div>
 
-      <LinkProjectDrawer open={isDrawerOpen} onOpenChange={setIsDrawerOpen} projectId={idTiLick} />
+      <LinkProjectDrawer
+        open={isDrawerOpen}
+        onOpenChange={(bool) => {
+          setIsDrawerOpen(bool)
+          // calling the function to refetch the project list after linking the project to update the button "open/link to remote"
+          fetchProjectList()
+        }}
+        projectId={idTiLick}
+      />
 
       <div className="flex flex-1 flex-col justify-center gap-4 p-4 ">
         <AddProject />

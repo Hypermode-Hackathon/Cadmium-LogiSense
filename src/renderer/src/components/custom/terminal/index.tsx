@@ -29,7 +29,7 @@ const XTerminal: React.FC<Props> = ({ projectId }) => {
 
     // Handle WebSocket events
     socket.onopen = () => {
-      // term.write('Connection established. Start typing commands...\r\n')
+      term.write('Connected to cadmium terminal.\r\nbash-$ ')
       console.log('WebSocket connection opened')
     }
 
