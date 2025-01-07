@@ -48,13 +48,18 @@ export const ProjectModel = {
         `)
     stmt.run(id)
   },
-  updateProjectById: (id: number, name: string, description: string): any => {
+  updateProjectById: (
+    id: number,
+    name: string,
+    description: string,
+    is_connected_to_remote: 0 | 1
+  ): any => {
     const db = openDB()
     const stmt = db.prepare(`
             UPDATE projects
-            SET name = ?, description = ?
+            SET name = ?, description = ?, is_connected_to_remote = ?
             WHERE project_id = ?
         `)
-    return stmt.run(name, description, id)
+    return stmt.run(name, description, id, is_connected_to_remote)
   }
 }

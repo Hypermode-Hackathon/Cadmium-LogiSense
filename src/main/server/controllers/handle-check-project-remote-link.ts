@@ -3,7 +3,7 @@ import { Request, Response } from 'express'
 import { ProjectModel } from '../models/projectModel'
 import path from 'path'
 import fs from 'fs'
-import { doesFolderExist } from '../utils/check-path-exists'
+import { FolderChecker } from '../utils/check-folder-exists'
 
 // Controller to handle fetching clients
 const handleCheckProjectRemoteLink = async (req: Request, res: Response): Promise<void> => {
@@ -46,15 +46,23 @@ const handleCheckProjectRemoteLink = async (req: Request, res: Response): Promis
       console.log('#############')
       console.log('#############')
       console.log('************* check project exixts ************** \n\n\n\n')
-      console.log('doesFolderExist(item.id) ===>>', item.id, doesFolderExist(item.id))
+      console.log('doesFolderExist(item.id) ===>>', item.id, FolderChecker.doesFolderExist(item.id))
       // Check if the project exists in the database
-      if (projectDetail && doesFolderExist(item.id)) {
-        // Update the project details in the database if it was updated by other user
-        ProjectModel.updateProjectById(item.id, item.name, item.description)
-        return {
-          ...item,
-          remoteUrl: projectDetail.remote_url,
-          isConnectedToRemote: projectDetail.is_connected_to_remote
+      if (projectDetail && FolderChecker.doesFolderExist(item.id)) {
+        if (FolderChecker.doesFolderWithinFolderExist(item.id)) {
+          ProjectModel.updateProjectById(item.id, item.name, item.description, 1)
+          return {
+            ...item,
+            remoteUrl: projectDetail.remote_url,
+            isConnectedToRemote: true
+          }
+        } else {
+          ProjectModel.updateProjectById(item.id, item.name, item.description, 0)
+          return {
+            ...item,
+            remoteUrl: projectDetail.remote_url,
+            isConnectedToRemote: false
+          }
         }
       } else {
         console.log('************* **************')
@@ -75,7 +83,6 @@ const handleCheckProjectRemoteLink = async (req: Request, res: Response): Promis
         }
       }
     })
-
     res.status(200).json({ list: newList })
   } catch (error: any) {
     console.error('[Error] =====>>')
