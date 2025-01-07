@@ -12,7 +12,7 @@ export const ProjectModel = {
             INSERT INTO projects (name, description, project_id, organization_id)
             VALUES (?, ?, ?, ?)
         `)
-    console.log('project_id ===>>', project_id)
+    // console.log('project_id ===>>', project_id)
     return stmt.run(name, description, project_id, organization_id)
   },
 

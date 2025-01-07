@@ -19,6 +19,9 @@ const validateHeadersMiddleware = async (
   res: Response,
   next: NextFunction
 ): Promise<void> => {
+  console.log('*************')
+  console.log('*************')
+  console.log('req.body ===>>', req.body, '\n\n\n\n')
   const cdId = req.headers['cd-id'] as string | undefined
   const cdSecret = req.headers['cd-secret'] as string | undefined
 

@@ -7,6 +7,9 @@ import fs from 'fs'
 
 // Controller to handle fetching clients
 const handleCreateProject = async (req: Request, res: Response): Promise<void> => {
+  console.log('*************')
+  console.log('*************')
+  console.log('req.body ===>>', req.body, '\n\n\n\n')
   try {
     const { project_name, project_description, project_id, organization_id } = req.body
     if (!project_name || !project_id || !organization_id) {

@@ -4,10 +4,12 @@ import { ProjectModel } from '../models/projectModel'
 import path from 'path'
 import fs from 'fs'
 import { doesFolderExist } from '../utils/check-path-exists'
-import { console } from 'inspector'
 
 // Controller to handle fetching clients
 const handleCheckProjectRemoteLink = async (req: Request, res: Response): Promise<void> => {
+  console.log('*************')
+  console.log('*************')
+  console.log('req.body ===>>', req.body, '\n\n\n\n')
   try {
     // Open the SQLite database
     const list = req.body.projectList as any[]
@@ -23,6 +25,8 @@ const handleCheckProjectRemoteLink = async (req: Request, res: Response): Promis
       res.status(400).json({ error: 'Need to create project first' })
       return
     }
+
+    console.log('*************all check pass ************** \n\n\n\n')
     const newList = list.map((item: any) => {
       if (!item.id) {
         return {
@@ -31,9 +35,18 @@ const handleCheckProjectRemoteLink = async (req: Request, res: Response): Promis
           isConnectedToRemote: false
         }
       }
+      console.log('*************')
+      console.log('*************')
+      console.log('************* loop first iteration ************** \n\n\n\n')
       console.log('item ===>>', item.id)
       const projectDetail = ProjectModel.getProjectById(item.id)
-
+      console.log('#############')
+      console.log('#############')
+      console.log('projectDetail ===>>', projectDetail, '\n\n\n\n')
+      console.log('#############')
+      console.log('#############')
+      console.log('************* check project exixts ************** \n\n\n\n')
+      console.log('doesFolderExist(item.id) ===>>', item.id, doesFolderExist(item.id))
       // Check if the project exists in the database
       if (projectDetail && doesFolderExist(item.id)) {
         // Update the project details in the database if it was updated by other user
@@ -44,6 +57,10 @@ const handleCheckProjectRemoteLink = async (req: Request, res: Response): Promis
           isConnectedToRemote: projectDetail.is_connected_to_remote
         }
       } else {
+        console.log('************* **************')
+        console.log('************* **************')
+        console.log('************* **************')
+        console.log('************* create new project ************** \n\n\n\n')
         // Create a new project if it doesn't exist
         const { name, description, id } = item
         ProjectModel.createProject(name, description, id, organization_id)
@@ -61,6 +78,8 @@ const handleCheckProjectRemoteLink = async (req: Request, res: Response): Promis
 
     res.status(200).json({ list: newList })
   } catch (error: any) {
+    console.error('[Error] =====>>')
+    console.error('[Error] =====>>')
     console.error('[Error] =====>>', error)
 
     // Handle database errors

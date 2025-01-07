@@ -8,7 +8,7 @@ import * as path from 'path'
  */
 export function doesFolderExist(id: string): boolean {
   // Resolve the project path based on the given ID
-  const PROJECT_PATH = path.resolve(__dirname, `./target-codebases/${id}`)
+  const PROJECT_PATH = path.resolve(__dirname, `../../target-codebases/${id}`)
 
   try {
     // Check if the path exists and is a directory
