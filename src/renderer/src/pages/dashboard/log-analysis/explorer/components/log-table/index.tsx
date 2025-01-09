@@ -26,6 +26,7 @@ const LogTable: React.FC = () => {
     // page
   } = useLogStore()
   const { project_id } = useParams()
+  console.log('project_id ===>>', project_id)
   const cd_id = localStorage.getItem('cd_id') ?? ''
   const cd_secret = localStorage.getItem('cd_secret') ?? ''
 

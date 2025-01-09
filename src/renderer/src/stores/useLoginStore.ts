@@ -3,8 +3,8 @@ import { create } from 'zustand'
 
 export const useLoginStore = create<LoginState>((set) => ({
   formData: {
-    clientId: '5c133a93-8dd4-4958-847a-ae81a5e11743',
-    clientSecret: '2fb5be09-8dba-481c-aaaf-5efad1d0a59c'
+    clientId: '',
+    clientSecret: ''
   },
   errors: {},
   loading: false,
