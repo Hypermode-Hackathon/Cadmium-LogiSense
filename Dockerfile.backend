@@ -1,0 +1,31 @@
+FROM node:18-slim
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    python3 \
+    python3-distutils \
+    build-essential \
+    make \
+    && rm -rf /var/lib/apt/lists/*
+
+# Set Python for node-gyp
+ENV PYTHON=/usr/bin/python3
+
+WORKDIR /app
+
+# Copy package files
+COPY package*.json ./
+
+# Install dependencies
+RUN npm install
+
+# Copy the backend source
+COPY . .
+
+# Specify Node.js module type
+RUN echo '{"type": "module"}' > package.json
+
+EXPOSE 6969
+
+# Start the backend server
+CMD ["node", "./src/main/server/server.ts"]

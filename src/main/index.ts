@@ -38,6 +38,7 @@ function createWindow(): void {
   }
 }
 
+
 ipcMain.on('toMain', (event, args: ToMainPayload) => {
   console.log('Message received from renderer:', args)
 
@@ -72,9 +73,9 @@ app.whenReady().then(() => {
   ipcMain.on('ping', () => console.log('pong'))
 
   // Initialize the SQLite database
-  initializeDB()
+  // initializeDB()
 
-  startServer()
+  // startServer()
 
   createWindow()
 

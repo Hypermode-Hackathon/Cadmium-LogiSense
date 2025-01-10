@@ -1,0 +1,48 @@
+FROM node:18-slim
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    libgtk-3-0 \
+    libnss3 \
+    libasound2 \
+    libx11-xcb1 \
+    libxcomposite1 \
+    libxrandr2 \
+    libxi6 \
+    libxcursor1 \
+    libxdamage1 \
+    libxtst6 \
+    libxss1 \
+    libglib2.0-0 \
+    libatk1.0-0 \
+    libpango-1.0-0 \
+    libpangocairo-1.0-0 \
+    libgdk-pixbuf2.0-0 \
+    libxinerama1 \
+    libgbm-dev \
+    xvfb \
+    python3 \
+    python3-distutils \
+    build-essential \
+    make \
+    && rm -rf /var/lib/apt/lists/*
+
+# Set the working directory
+WORKDIR /app
+
+# Copy package files
+COPY package*.json ./
+
+# Set Python for node-gyp
+ENV PYTHON=/usr/bin/python3
+
+# Install dependencies
+RUN npm install
+
+# Copy the frontend source
+COPY . .
+
+EXPOSE 6968
+
+# Start the frontend development server
+CMD ["npm", "run", "dev"]
