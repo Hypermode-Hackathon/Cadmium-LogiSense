@@ -45,6 +45,13 @@ export function initializeDB() {
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 FOREIGN KEY (organization_id) REFERENCES organization_detail (id)
             );
+            CREATE TABLE IF NOT EXISTS loggedin_organization_detail (
+                id TEXT PRIMARY KEY UNIQUE,
+                cd_id TEXT NOT NULL UNIQUE,
+                cd_secret TEXT NOT NULL UNIQUE,
+                organization_name TEXT NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            );
         `)
 
     // applyMigrations();

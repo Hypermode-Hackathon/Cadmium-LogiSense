@@ -2,13 +2,16 @@ import { LOCAL_AXIOS_INSTANCE } from '../../axios/axios'
 import { Card, CardContent, CardDescription, CardHeader } from '../../components/ui/card'
 import Loader from '../../components/ui/loader'
 import { toast } from '../../hooks/use-toast'
-import { useAuthStore } from '../../stores/useAuthStore'
 import { Organization } from '../../types/type'
 import { useQuery } from '@tanstack/react-query'
 import React from 'react'
+import { useLoginStore } from '../../stores/useLoginStore'
+import { useNavigate } from 'react-router-dom'
+import { handleLogin } from '../../services/api/handle-login'
 
 const ChooseOrg: React.FC = () => {
-  const { setIsLoggedIn, setOrganization } = useAuthStore()
+  const { setFormData } = useLoginStore()
+  const navigate = useNavigate()
   const getOrgList = async () => {
     try {
       const { data } = await LOCAL_AXIOS_INSTANCE.get('/org-list')
@@ -25,13 +28,10 @@ const ChooseOrg: React.FC = () => {
     refetchOnWindowFocus: false
   })
 
-  const handleChooseOrg = (org: Organization) => {
-    localStorage.setItem('cd_id', org.cd_id)
-    localStorage.setItem('cd_secret', org.cd_secret)
-    localStorage.setItem('organization_id', org.id)
-    localStorage.setItem('organization_name', org.organization_name)
-    setIsLoggedIn(true)
-    setOrganization(org.organization_name)
+  const handleChooseOrg = async (org: Organization) => {
+    setFormData('clientId', org.cd_id)
+    setFormData('clientSecret', org.cd_secret)
+    await handleLogin(navigate) // Call the extracted login handler
   }
 
   return (
