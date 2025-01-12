@@ -10,6 +10,8 @@ function App(): JSX.Element {
   // ! TEST CONNECTION TO MAIN PROCESS
   // const ipcHandle = (): void => window.electron.ipcRenderer.send('ping')
 
+  // TODO: 1. Block the notification if user in not logged in
+
   const { appendTableDataToTop, setLogDataToStream } = useLogStore()
   const { project_id, organization_id } = useOpenProjectInfo()
   /*

@@ -111,13 +111,13 @@ export interface TerminalDrawerStoreState {
 
 export interface OpenProjectState {
   project_id: string | null
-  setProjectId: (project_id: string) => void
+  setProjectId: (project_id: string | null) => void
   organization_id: string | null
-  setOrganizationId: (organization_id: string) => void
+  setOrganizationId: (organization_id: string | null) => void
   project_name: string | null
-  setProjectName: (project_name: string) => void
+  setProjectName: (project_name: string | null) => void
   project_description: string | null
-  setProjectDescription: (project_description: string) => void
+  setProjectDescription: (project_description: string | null) => void
   isLoading: boolean
   setIsLoading: (isLoading: boolean) => void
 }
