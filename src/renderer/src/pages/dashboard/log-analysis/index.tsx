@@ -17,11 +17,11 @@ const LogAnalysis: React.FC = () => {
     project_id: string
   }>() // Treat as a string to handle unmatched cases
 
-  const { organization } = useAuthStore()
+  const { organizationName } = useAuthStore()
 
   // Fetch project info to store the general info of opened project
   useQuery({
-    queryKey: [organization, project_id],
+    queryKey: [organizationName, project_id],
     queryFn: () => (project_id ? fetchOpenProjectInfo({ project_id }) : {}),
     refetchOnWindowFocus: false
   })

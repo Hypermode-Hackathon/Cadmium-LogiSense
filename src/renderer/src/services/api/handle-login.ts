@@ -13,7 +13,7 @@ import { NavigateFunction } from 'react-router-dom'
  * @returns A promise that resolves when the login process is complete.
  */
 export const handleLogin = async (navigate: NavigateFunction): Promise<void> => {
-  const { setIsLoggedIn, setOrganization } = useAuthStore.getState() // Zustand state for auth
+  const { setIsLoggedIn, setOrganizationName } = useAuthStore.getState() // Zustand state for auth
   const { formData, setErrors, setLoading } = useLoginStore.getState()
   const validationErrors = validateLoginForm(formData)
 
@@ -33,7 +33,7 @@ export const handleLogin = async (navigate: NavigateFunction): Promise<void> => 
       localStorage.setItem('cd_secret', clientSecret)
       localStorage.setItem('organization_id', resp.data.organization_id)
       localStorage.setItem('organization_name', resp.data.organization_name)
-      setOrganization(resp.data.organization_name)
+      setOrganizationName(resp.data.organization_name)
       navigate(`/${resp.data.organization_name}/projects`, { replace: true }) // Use the passed navigate function
       setIsLoggedIn(true)
     }
