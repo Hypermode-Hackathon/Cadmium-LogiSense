@@ -12,6 +12,7 @@ import {
 import { SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from '../../ui/sidebar'
 import { useNavigate } from 'react-router-dom'
 import { handleLogout } from '../../../services/api/handle-logout'
+import { useAuthStore } from '../../../stores/useAuthStore'
 export function NavUser({
   user
 }: {
@@ -23,6 +24,7 @@ export function NavUser({
 }) {
   const { isMobile } = useSidebar()
   const navigate = useNavigate()
+  const { organization } = useAuthStore()
   return (
     <SidebarMenu>
       <SidebarMenuItem>
@@ -33,11 +35,11 @@ export function NavUser({
               className="data-[state=open]:bg-accent data-[state=open]:text-sidebar-accent-foreground"
             >
               <Avatar className="h-8 w-8 rounded-lg">
-                <AvatarImage src={user.avatar} alt={user.name} />
+                <AvatarImage src={user.avatar} alt={organization} />
                 <AvatarFallback className="rounded-lg">RO</AvatarFallback>
               </Avatar>
               <div className="grid flex-1 text-left text-sm leading-tight">
-                <span className="truncate font-semibold">{user.name}</span>
+                <span className="truncate font-semibold">{organization}</span>
                 <span className="truncate text-xs">{user.email}</span>
               </div>
               <ChevronsUpDown className="ml-auto size-4" />
@@ -52,11 +54,11 @@ export function NavUser({
             <DropdownMenuLabel className="p-0 font-normal">
               <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
                 <Avatar className="h-8 w-8 rounded-lg">
-                  <AvatarImage src={user.avatar} alt={user.name} />
+                  <AvatarImage src={user.avatar} alt={organization} />
                   <AvatarFallback className="rounded-lg">CD</AvatarFallback>
                 </Avatar>
                 <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-semibold">{user.name}</span>
+                  <span className="truncate font-semibold">{organization}</span>
                   <span className="truncate text-xs">{user.email}</span>
                 </div>
               </div>

@@ -24,6 +24,14 @@ export const OrganizationModel = {
     return stmt.get(id) as Organization
   },
 
+  getOrganizationByCdIdAndCdSecret: (cd_id: string, cd_secret: string) => {
+    const db = openDB()
+    const stmt = db.prepare(`
+            SELECT * FROM organization_detail WHERE cd_id = ? AND cd_secret = ?
+        `)
+    return stmt.get(cd_id, cd_secret) as Organization
+  },
+
   getAllOrganizations: () => {
     const db = openDB()
     const stmt = db.prepare(`

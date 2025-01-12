@@ -27,14 +27,14 @@ const TBody: React.FC<Props> = ({ tableData, onRowClick }) => {
             className={`cursor-pointer dark:hover:bg-muted-foreground hover:bg-accent ${data.isStreaming === true && 'animate-pulse bg-muted-foreground'} `}
             onClick={() => handleRowClick(data)}
           >
-            <TableCell className="font-medium">
+            <TableCell className="font-medium w-[15%]">
               {new Date(data.createdAt).toLocaleString()}
             </TableCell>
-            <TableCell className="text-left ">{addEllipsis(data.error, 100, 3)}</TableCell>
-            <TableCell className="">
+            <TableCell className="text-left w-[50%]">{addEllipsis(data.error, 100, 3)}</TableCell>
+            <TableCell className="w-[10%]">
               <HttpMethodBadge variant={data.method}>{data.method}</HttpMethodBadge>
             </TableCell>
-            <TableCell className="">{getApiEndpoint(data.url)}</TableCell>
+            <TableCell className="w-[30%]">{getApiEndpoint(data.url)}</TableCell>
             <TableCell className="text-right " onClick={(e) => e.stopPropagation()}>
               <ActionButton />
             </TableCell>

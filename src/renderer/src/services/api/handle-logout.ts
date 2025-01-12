@@ -1,5 +1,7 @@
 import { useAuthStore } from '../../stores/useAuthStore'
 import { NavigateFunction } from 'react-router-dom'
+import { useOpenProjectInfo } from '../../stores/useOpenProjectInfo'
+import { useLogStore } from '../../stores/useLogStore'
 
 /**
  * Logs the user out of the application by clearing the local storage
@@ -9,16 +11,27 @@ import { NavigateFunction } from 'react-router-dom'
  * @param navigate - The navigate function from react-router-dom.
  */
 export const handleLogout = (navigate: NavigateFunction) => {
-  const { setIsLoggedIn, setOrganization } = useAuthStore.getState() // Zustand state for auth
-
   // Clear the local storage
   localStorage.clear()
 
-  // Set the authentication state to false
+  // Clear auth state
+  const { setIsLoggedIn, setOrganization } = useAuthStore.getState() // Zustand state for auth
   setIsLoggedIn(false)
-
-  // Set the organization to an empty string
   setOrganization('')
+
+  // Clear the project information
+  const { setProjectId, setOrganizationId, setProjectName, setProjectDescription } =
+    useOpenProjectInfo.getState()
+  setProjectId(null)
+  setOrganizationId(null)
+  setProjectName(null)
+  setProjectDescription(null)
+
+  // Clear the log data
+  const { resetTableData } = useLogStore.getState()
+  resetTableData()
+
+  // TODO: 1 turn off the AI
 
   // Redirect the user to the login page
   navigate('/login', { replace: true })

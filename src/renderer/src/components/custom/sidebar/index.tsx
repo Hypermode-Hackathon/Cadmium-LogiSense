@@ -200,7 +200,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                   <img src="/rosterly.png" alt="" className="rounded-sm" />
                 </div>
                 <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-semibold">Rosterly.io</span>
+                  <span className="truncate font-semibold">{organization}</span>
                   <span className="truncate text-xs">Enterprise</span>
                 </div>
               </CustomLink>

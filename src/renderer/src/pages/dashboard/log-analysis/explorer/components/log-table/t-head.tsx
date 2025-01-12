@@ -5,11 +5,11 @@ const THead: React.FC = () => {
   return (
     <TableHeader>
       <TableRow className="hover:bg-transparent">
-        <TableHead className="w-[100px]">Timestamp</TableHead>
-        <TableHead className="text-left ">Error message</TableHead>
-        <TableHead className="w-[50px] ">Method</TableHead>
-        <TableHead className="w-[50px] ">API endpoint</TableHead>
-        <TableHead className="text-right w-[50px] ">Action</TableHead>
+        <TableHead className="w-[15%]">Timestamp</TableHead>
+        <TableHead className="text-left w-[50%] ">Error message</TableHead>
+        <TableHead className="w-[10%] ">Method</TableHead>
+        <TableHead className="w-[30%]">API endpoint</TableHead>
+        <TableHead className="text-right">Action</TableHead>
       </TableRow>
     </TableHeader>
   )

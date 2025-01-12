@@ -1,101 +1,19 @@
-import { Suspense, lazy, useEffect } from 'react'
-import { createBrowserRouter, RouterProvider } from 'react-router-dom'
-import LoginNavbar from './components/custom/navbars/login-navbar'
-import { SidebarInset, SidebarProvider } from './components/ui/sidebar'
-import { AppSidebar } from './components/custom/sidebar'
-import PublicRouteProtector from './services/route-protector/public-route-protector'
-import PrivateRouteProtector from './services/route-protector/private-route-protector'
-import ProjectPageNavbar from './components/custom/navbars/projects-page-navbar'
-import Footer from './components/custom/global/footer'
+import { useEffect } from 'react'
+import { RouterProvider } from 'react-router-dom'
 import { addMessageListener, disconnectWebSocket, removeMessageListener } from './socket/socket'
 import { LogTableEntry } from './types/type'
 import { useLogStore } from './stores/useLogStore'
-
-// Lazy load pages
-const LogAnalysis = lazy(() => import('./pages/dashboard/log-analysis/index'))
-const NotFound = lazy(() => import('./pages/not-found/not-found'))
-const Login = lazy(() => import('./pages/login/index'))
-const Projects = lazy(() => import('./pages/projects/index'))
-
-const router = createBrowserRouter([
-  {
-    path: '/',
-    element: (
-      <>
-        <Suspense fallback={<div className="text-center">Loading...</div>}>
-          <PublicRouteProtector>
-            <>
-              <LoginNavbar />
-              <Login />
-            </>
-          </PublicRouteProtector>
-        </Suspense>
-      </>
-    )
-  },
-  {
-    path: '/login',
-    element: (
-      <>
-        <Suspense fallback={<div className="text-center">Loading...</div>}>
-          <PublicRouteProtector>
-            <>
-              <LoginNavbar />
-              <Login />
-            </>
-          </PublicRouteProtector>
-        </Suspense>
-      </>
-    )
-  },
-  {
-    path: '/:organization/projects',
-    element: (
-      <Suspense fallback={<div className="text-center">Loading...</div>}>
-        <PrivateRouteProtector>
-          <ProjectPageNavbar />
-          <Projects />
-        </PrivateRouteProtector>
-      </Suspense>
-    )
-  },
-  {
-    path: '/:organization/projects/:project_id/log-analysis/:submodule',
-    element: (
-      <Suspense fallback={<div className="text-center">Loading...</div>}>
-        <PrivateRouteProtector>
-          <SidebarProvider>
-            <AppSidebar variant="inset" className="" />
-            <SidebarInset className="">
-              <LogAnalysis />
-            </SidebarInset>
-          </SidebarProvider>
-          <div className="fixed bottom-0 right-0 bg-sidebar-background w-full ">
-            <Footer />
-          </div>
-        </PrivateRouteProtector>
-      </Suspense>
-    )
-  },
-  {
-    path: '*',
-    element: (
-      <>
-        {/* <Header /> */}
-        <Suspense fallback={<div className="text-center">Loading...</div>}>
-          <NotFound />
-        </Suspense>
-        {/* <Footer /> */}
-      </>
-    )
-  }
-])
+import { router } from './routes'
+import { useOpenProjectInfo } from './stores/useOpenProjectInfo'
 
 function App(): JSX.Element {
   // ! TEST CONNECTION TO MAIN PROCESS
   // const ipcHandle = (): void => window.electron.ipcRenderer.send('ping')
 
+  // TODO: 1. Block the notification if user in not logged in
+
   const { appendTableDataToTop, setLogDataToStream } = useLogStore()
+  const { project_id, organization_id } = useOpenProjectInfo()
   /*
 	WebSocket message handling for new logs
 
@@ -139,7 +57,13 @@ function App(): JSX.Element {
           traceback: chunk.data.raw_log.traceback,
           isStreaming: true
         }
-        appendTableDataToTop([logTableData])
+        // Appending the log table data to the top only if the that project is open.
+        if (
+          logTableData.applicationId === project_id &&
+          logTableData.organizationId === organization_id
+        ) {
+          appendTableDataToTop([logTableData])
+        }
         // Show notification in Electron
         if (window.electronAPI) {
           window.electronAPI.sendMessage('toMain', {
