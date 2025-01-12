@@ -29,7 +29,7 @@ type Props = {
  * - The child components if the user is authenticated.
  */
 const PrivateRouteProtector: React.FC<Props> = ({ children }) => {
-  const { setIsLoggedIn, setOrganization } = useAuthStore() // Zustand state for auth
+  const { setIsLoggedIn, setOrganizationName } = useAuthStore() // Zustand state for auth
   const [loading, setLoading] = React.useState(false)
   const location = useLocation()
   const navigate = useNavigate()
@@ -39,13 +39,13 @@ const PrivateRouteProtector: React.FC<Props> = ({ children }) => {
       const res = await LOCAL_AXIOS_INSTANCE.post('/validation', { cd_id, cd_secret })
       if (res.data.isValid) {
         setIsLoggedIn(true)
-        setOrganization(res.data.return.organization_name)
+        setOrganizationName(res.data.return.organization_name)
         localStorage.setItem('organization_name', res.data.return.organization_name)
       }
     } catch (error: Error | any) {
       localStorage.clear()
       setIsLoggedIn(false)
-      setOrganization('')
+      setOrganizationName('')
       navigate('/login', { state: { from: location }, replace: true })
       setIsLoggedIn(false)
       console.log(error)
