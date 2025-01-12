@@ -4,12 +4,14 @@ import { addMessageListener, disconnectWebSocket, removeMessageListener } from '
 import { LogTableEntry } from './types/type'
 import { useLogStore } from './stores/useLogStore'
 import { router } from './routes'
+import { useOpenProjectInfo } from './stores/useOpenProjectInfo'
 
 function App(): JSX.Element {
   // ! TEST CONNECTION TO MAIN PROCESS
   // const ipcHandle = (): void => window.electron.ipcRenderer.send('ping')
 
   const { appendTableDataToTop, setLogDataToStream } = useLogStore()
+  const { project_id, organization_id } = useOpenProjectInfo()
   /*
 	WebSocket message handling for new logs
 
@@ -53,7 +55,13 @@ function App(): JSX.Element {
           traceback: chunk.data.raw_log.traceback,
           isStreaming: true
         }
-        appendTableDataToTop([logTableData])
+        // Appending the log table data to the top only if the that project is open.
+        if (
+          logTableData.applicationId === project_id &&
+          logTableData.organizationId === organization_id
+        ) {
+          appendTableDataToTop([logTableData])
+        }
         // Show notification in Electron
         if (window.electronAPI) {
           window.electronAPI.sendMessage('toMain', {

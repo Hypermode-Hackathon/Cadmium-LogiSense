@@ -7,7 +7,7 @@ import PublicRouteProtector from './services/route-protector/public-route-protec
 import PrivateRouteProtector from './services/route-protector/private-route-protector'
 import ProjectPageNavbar from './components/custom/navbars/projects-page-navbar'
 import Footer from './components/custom/global/footer'
-import Fallback from './fallback'
+import Fallback from './components/custom/global/fallback'
 
 // Lazy load pages
 const LogAnalysis = lazy(() => import('./pages/dashboard/log-analysis/index'))
